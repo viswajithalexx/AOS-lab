@@ -12,8 +12,8 @@ from cartopy import crs as ccrs
 import cartopy.feature as cfeature
 
 
-file = "/home/bobco-08/Desktop/24cl05012/CO2/codes/oc_v2024E.flux.nc"
-file2 = "/home/bobco-08/Desktop/24cl05012/CO2/codes/monthly_sst_io.nc"
+file = "C:/Users/user/Documents/24CL05012/2nd/Project/python/oc_v2024E.flux.nc"
+file2 = "C:/Users/user/Documents/24CL05012/2nd/Project/python/data/sst_monthly_io.nc"
 
 data = xr.open_dataset(file,decode_timedelta=True)
 data2 = xr.open_dataset(file2,decode_timedelta = True)
@@ -86,9 +86,23 @@ co2a_t = co2_anomaly.mean(dim=('lat','lon'))
 
 #IOD index
 
-sst_clim = sst.groupby('valid_time.month').mean()
+sst_modified = sst.sel(valid_time = slice("1957-1-1","2023-12-31"))
 
-sst_anomaly = sst.groupby('valid_time.month')- sst_clim
+sst_clim = sst_modified.groupby('valid_time.month').mean()
+
+sst_anomaly = sst_modified.groupby('valid_time.month')- sst_clim
+
+wbox = sst_anomaly.sel(latitude=slice(10, -10), longitude=slice(50, 70)).mean(dim=('latitude', 'longitude'))
+ebox = sst_anomaly.sel(latitude=slice(0, -10), longitude=slice(90, 110)).mean(dim=('latitude', 'longitude'))
+
+iod = wbox-ebox
+
+
+#%% plotting iod and co2
 
 
 
+plt.figure()
+plt.plot(iod.valid_time,iod)
+plt.grid()
+plt.show()
