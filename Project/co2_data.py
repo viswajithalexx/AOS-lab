@@ -201,15 +201,15 @@ plt.show()
 
 co2sen_mean = co2_flux.groupby('mtime.season').mean(dim=("mtime"))
 
-fig, axs = plt.subplots(2, 2, figsize=(24, 10), subplot_kw={'projection': ccrs.PlateCarree()})
-season = ['DJF','MAM',]
+fig, axs = plt.subplots(2, 2, figsize=(10,8), subplot_kw={'projection': ccrs.PlateCarree()})
+season = ['DJF','MAM','JJAS',"SON"]
 
 for i, ax in enumerate(axs.flat):
     
-    im = ax.contourf(co2_flux.lon, co2_flux.lat, co2mon_mean[i], 
+    im = ax.contourf(co2_flux.lon, co2_flux.lat, co2sen_mean[i], 
                      levels=20 , cmap='coolwarm', transform=ccrs.PlateCarree())
     
-    ax.set_title(months[i])
+    ax.set_title(season[i])
     ax.coastlines()
     ax.add_feature(cfeature.BORDERS, linewidth=0.5)
     ax.set_xticks([])
