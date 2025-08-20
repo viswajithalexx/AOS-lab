@@ -12,8 +12,8 @@ from cartopy import crs as ccrs
 import cartopy.feature as cfeature
 
 
-file = "/home/bobco-08/Desktop/24cl05012/CO2/data/oc_v2024E.flux.nc"
-file2 = "/home/bobco-08/Desktop/24cl05012/CO2/data/monthly_sst_io.nc"
+file = "C:/Users/HP/Desktop/Project/code/oc_v2024E.flux.nc"
+file2 = "C:/Users/HP/Desktop/Project/code/sst_monthly_io.nc"
 
 data = xr.open_dataset(file,decode_timedelta=True)
 data2 = xr.open_dataset(file2,decode_timedelta = True)
@@ -63,13 +63,13 @@ cbar = plt.colorbar(im, orientation='vertical', pad=0.05, aspect=30)
 cbar.set_label("CO₂ Flux (PgC/yr)", fontsize=12)
 
 # Show plot
-plt.title("CO₂ Flux over Indian Ocean Climatology", fontsize=14)
+plt.title("CO₂ Flux over Indian Ocean", fontsize=14)
 plt.tight_layout()
 plt.show()
 
 #%% IOD and CO2 flux
 
-co2_flux = co2_ocean.sel(lat = slice(2,30),lon = slice(30,100))
+co2_flux = co2_ocean.sel(lat = slice(-40,30),lon = slice(30,120))
 
 # Remove all Feb 29s from the time axis
 co2_flux = co2_flux.sel(mtime=~((co2_flux['mtime.month'] == 2) & (co2_flux['mtime.day'] == 29)))
@@ -169,35 +169,28 @@ plt.show()
 
 #%% co2 monthly value
  
-
 co2mon_mean = co2_flux.groupby("mtime.month").mean(dim=('mtime'))
 
-co2mon_mean =  co2mon_mean.where(co2mon_mean != 0)
-
-fig, axs = plt.subplots(3, 4, figsize=(20, 10), subplot_kw={'projection': ccrs.PlateCarree()})
+fig, axs = plt.subplots(3, 4, figsize=(24, 10), subplot_kw={'projection': ccrs.PlateCarree()})
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 for i, ax in enumerate(axs.flat):
     
     im = ax.contourf(co2_flux.lon, co2_flux.lat, co2mon_mean[i], 
-                     levels = 20 , cmap='coolwarm', transform=ccrs.PlateCarree())
+                     levels=20 , cmap='coolwarm', transform=ccrs.PlateCarree())
     
     ax.set_title(months[i])
     ax.coastlines()
     ax.add_feature(cfeature.BORDERS, linewidth=0.5)
-    ax.add_feature(cfeature.LAND,color="gray",zorder=11)
-    gl = ax.gridlines(draw_labels=True, linewidth=0.4, color='gray', alpha=0.5)
-    gl.top_labels = gl.right_labels = False
-    gl.left_labels = (i % 4 == 0)
-    gl.bottom_labels = (i >= 8)  # 8–11 are bottom row in 3x4 grid
+    ax.set_xticks([])
+    ax.set_yticks([])
 
-    
 # Add colorbar
 fig.subplots_adjust(right=0.9)
 cbar_ax = fig.add_axes([0.92, 0.25, 0.015, 0.5]) # left,bottom,width,height
 cbar = fig.colorbar(im, cax=cbar_ax)
-cbar.set_label(label ='CO₂ Flux (PgC/yr)',labelpad = 5)
+cbar.set_label(label ='CO₂ Flux (PgC/yr)',labelpad = 10)
 
 
 plt.suptitle('Monthly Mean CO₂ Flux (1957–2023)', fontsize=16)
@@ -208,48 +201,28 @@ plt.show()
 
 co2sen_mean = co2_flux.groupby('mtime.season').mean(dim=("mtime"))
 
-fig, axs = plt.subplots(2, 2, figsize=(24,24), subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace': -0.3, 'hspace': 0.3})
+fig, axs = plt.subplots(2, 2, figsize=(10,8), subplot_kw={'projection': ccrs.PlateCarree()})
 season = ['DJF','MAM','JJAS',"SON"]
 
 for i, ax in enumerate(axs.flat):
+    
     im = ax.contourf(co2_flux.lon, co2_flux.lat, co2sen_mean[i], 
-                     levels= np.linspace(-0.00225,0.00300,9) , cmap='coolwarm', transform=ccrs.PlateCarree(), extend ='both')
+                     levels=20 , cmap='coolwarm', transform=ccrs.PlateCarree())
+    
     ax.set_title(season[i])
     ax.coastlines()
     ax.add_feature(cfeature.BORDERS, linewidth=0.5)
-    ax.add_feature(cfeature.LAND,color="gray",zorder=11)
-    gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5)
-    gl.top_labels =  False
-    gl.right_labels =  False
+    ax.set_xticks([])
+    ax.set_yticks([])
 
 # Add colorbar
 fig.subplots_adjust(right=0.9)
-cbar_ax = fig.add_axes([0.25, 0.50, 0.5, 0.015]) # left,bottom,width,height
-cbar = fig.colorbar(im, cax=cbar_ax, orientation = 'horizontal')
+cbar_ax = fig.add_axes([0.92, 0.25, 0.015, 0.5]) # left,bottom,width,height
+cbar = fig.colorbar(im, cax=cbar_ax)
+cbar.set_label(label ='CO₂ Flux (PgC/yr)',labelpad = 10)
 
 
-
-plt.suptitle('Monthly Mean CO₂ Flux (1957–2023)', fontsize=16, y= 0.95)
-plt.show()
-#%%
-
-co2mon_mean = co2_flux.groupby("mtime.month").mean(dim=('mtime'))
-co2mon_mean =  co2mon_mean.where(co2mon_mean != 0)
-
-ax=plt.figure()
-ax = plt.axes(projection=ccrs.PlateCarree())
-ax.coastlines()
-im=ax.contourf(co2_flux.lon, co2_flux.lat, co2mon_mean[1], 
-                 levels=20 , cmap='viridis', transform=ccrs.PlateCarree())          
-ax.gridlines(visible=True,draw_labels=True)
-ax.add_feature(cfeature.LAND,color="gray",zorder=11)
-plt.colorbar(im)
-plt.show()
-
-
-plt.title('Mean Wind Speed over Selected Region')
-plt.xlabel('Longitude')
-plt.ylabel('Wind Speed (m/s)')
-plt.grid(True)
+plt.suptitle('Monthly Mean CO₂ Flux (1957–2023)', fontsize=16)
+plt.tight_layout(rect=[0, 0, 0.9, 0.95])
 plt.show()
 
