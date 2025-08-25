@@ -48,24 +48,38 @@ pco2sen_mean = pco2sen_mean.reindex({"custom_season": season_order})
 
 #%%
 
-fig, axs = plt.subplots(2, 2, figsize=(15,13), subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.25,'hspace': 0.5})
+fig, axs = plt.subplots(2, 2, figsize=(15,13), subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':-0.15,'hspace': 0.19})
 season = ['DJF','MAM','JJA',"SON"]
 
 for i, ax in enumerate(axs.flat):
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i], 
                      levels =20,cmap= 'rainbow' ,transform=ccrs.PlateCarree(), extend ='both')
-    ax.set_title(season[i])
     ax.coastlines()
     ax.add_feature(cf.BORDERS, linewidth=0.5)
     ax.add_feature(cf.LAND,color ='grey',zorder=11)
-    gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='gray', alpha=0.5)
-    gl.top_labels =  False
-    gl.right_labels =  False
+ 
+# Used to add the subplot title inside the plot    
+    ax.text(0.75, 0.98, season[i],          # x, y in axes fraction (0–1)
+        transform=ax.transAxes,         # interpret coords relative to axes
+        fontsize=12, zorder= 18,fontweight='bold',
+        va='top', ha='right',)            # vertical & horizontal alignment
+    gl = ax.gridlines(draw_labels = True,linewidth = 0.5 , color = 'grey', alpha =0.5)
+    gl.right_labels = False
+    gl.top_labels = False
+    
+    # remove *bottom labels* only for first row (i = 0,1)
+    if i in [0, 1]:
+        gl.bottom_labels = False
+    if i in[1,3]:
+        gl.left_labels = False
+        
+
+    
+
 
 # Add colorbar
-fig.subplots_adjust(right=0.9)
 cbar_ax = fig.add_axes([0.25, 0.50, 0.5, 0.015]) # left,bottom,width,height
-cbar = fig.colorbar(im, cax=cbar_ax,orientation = 'horizontal', label= r'uatm')
+cbar = fig.colorbar(im, cax=cbar_ax,orientation = 'horizontal', label= '\u00b5atm')
 
 
 
@@ -79,7 +93,7 @@ pco2mon = pco2mon.where(pco2mon != 0)
 
 
 
-fig, axs = plt.subplots(3, 4, figsize=(15,14), subplot_kw={'projection': ccrs.PlateCarree()})
+fig, axs = plt.subplots(3, 4, figsize=(25,24), subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':-0.55,'hspace': 0.02})
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -88,17 +102,30 @@ for i, ax in enumerate(axs.flat):
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2mon[i], 
                      levels=20 , cmap='rainbow', transform=ccrs.PlateCarree())
     
-    ax.set_title(months[i])
+
     ax.coastlines()
     ax.add_feature(cf.BORDERS, linewidth=0.5)
     ax.add_feature(cf.LAND,linewidth=0.5, zorder =11)
+    
+    
+    # Used to add the subplot title inside the plot    
+    ax.text(0.75, 0.98, months[i],          # x, y in axes fraction (0–1)
+            transform=ax.transAxes,         # interpret coords relative to axes
+            fontsize=12, zorder= 18,fontweight='bold',
+            va='top', ha='right',)            # vertical & horizontal alignment
     gl = ax.gridlines(draw_labels=True, linewidth=0.5, color='grey', alpha=0.5)
     gl.top_labels =  False
     gl.right_labels =  False
     
+    if i in [0,1,2,3,4,5,6,7]:
+        gl.bottom_labels = False
+    if i in[1,2,3,5,6,7,9,10,11,12]:
+        gl.left_labels = False
+        
+    
 # Add colorbar
 fig.subplots_adjust(right=0.9)
-cbar_ax = fig.add_axes([0.92, 0.25, 0.015, 0.5]) # left,bottom,width,height
+cbar_ax = fig.add_axes([0.85, 0.25, 0.015, 0.5]) # left,bottom,width,height
 cbar = fig.colorbar(im, cax=cbar_ax)
 cbar.set_label(label =r'uatm',labelpad = 10)
 
@@ -106,6 +133,7 @@ cbar.set_label(label =r'uatm',labelpad = 10)
 plt.suptitle('Monthly Mean CO₂ Flux (1957–2023)', fontsize=16)
 plt.show()
 
+#%%
 
 
 
