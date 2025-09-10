@@ -121,7 +121,7 @@ cbar = plt.colorbar(im, ax=ax, orientation="vertical", pad=0.05, shrink=0.8)
 cbar.set_label("Correlation Coefficient")
 
 # Title and labels
-plt.title("Correlation of Daily SST (2022)\nReference Point (16.57°N, 88.10°E) vs Bay of Bengal",
+plt.title("Correlation of Daily SST (2022)\nReference Point (16.57°N, 88.10°E) vs Indian Ocean",
           fontsize=14, weight='bold')
 plt.legend(loc='lower left')
 
@@ -354,7 +354,7 @@ cbar = plt.colorbar(im, ax=ax, orientation="vertical", pad=0.05, shrink=0.8)
 cbar.set_label("Correlation Coefficient")
 
 # Title and labels
-plt.title("Correlation of Daily SST (2022)\nReference Point (16.57°N, 88.10°E) vs Bay of Bengal",
+plt.title("Correlation of Daily SST (2022)\nReference Point (16.57°N, 88.10°E) vs Indian Ocean",
           fontsize=14, weight='bold')
 plt.legend(loc='lower left')
 
