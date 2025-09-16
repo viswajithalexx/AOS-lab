@@ -22,7 +22,7 @@ time = data['mtime']
 pco2 = data['pCO2']
 area = data['dxyp']
 
-pco2_flux = pco2.sel(lat = slice(-40,30),lon = slice(40,120))
+pco2_flux = pco2.sel(lat = slice(-40,30),lon = slice(40,120),mtime = slice('1980-01-01','2019-12-31'))
 
 #%%
 months = pco2_flux['mtime'].dt.month
@@ -48,20 +48,27 @@ pco2sen_mean = pco2sen_mean.reindex({"custom_season": season_order})
 
 #%%
 
+
+
+
+
+#%%
+
+
 fig, axs = plt.subplots(2, 2, figsize=(15,13),dpi = 150 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':-0.15,'hspace': 0.19})
 season = ['DJF','MAM','JJA',"SON"]
 
 for i, ax in enumerate(axs.flat):
-    levels = np.linspace(300,480,16)
+    levels = np.linspace(300,450,16)
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i], 
-                     levels,cmap= 'rainbow' ,transform=ccrs.PlateCarree(), extend ='both') #RdYlBu_r nice colormap
+                     levels,cmap= 'viridis' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
     
     contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i],
                           colors='black', linewidths=0.6, levels= 20)
     ax.clabel(contours, inline=True, fontsize=8, fmt="%.1f")  # label the contours
-    ax.coastlines()
-    ax.add_feature(cf.BORDERS, linewidth=0.5)
-    ax.add_feature(cf.LAND,color ='grey',zorder=11)
+    ax.coastlines(zorder =11)
+    ax.add_feature(cf.LAND, facecolor="lightgrey", zorder=10)
+  
  
 # Used to add the subplot title inside the plot    
     ax.text(0.75, 0.98, f"Mean ({season[i]})",          # x, y in axes fraction (0–1)
@@ -88,7 +95,7 @@ cbar = fig.colorbar(im, cax=cbar_ax,orientation = 'horizontal', label= '\u00b5at
 
 
 
-plt.suptitle('Seasonal climatology of pCO₂ in Indian Ocean (1957–2023)', fontsize=16, y= 0.95)
+plt.suptitle('Seasonal climatology of pCO₂ in Indian Ocean (1980–2019)', fontsize=16, y= 0.95)
 plt.show()
 
 #%% monthly pCO2
@@ -105,7 +112,7 @@ months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
 for i, ax in enumerate(axs.flat):
     
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2mon[i], 
-                     levels=20 , cmap='rainbow', transform=ccrs.PlateCarree())
+                     levels=20 , cmap='PiYG', transform=ccrs.PlateCarree())
     # contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2mon[i],
     #                       colors='black', linewidths=0.6, levels=8)
     # ax.clabel(contours, inline=True, fontsize=8, fmt="%.1f")  # label the contours
@@ -172,8 +179,10 @@ fig, axs = plt.subplots(2, 2, figsize=(15,13), dpi =150,subplot_kw={'projection'
 season = ['DJF','MAM','JJA',"SON"]
 
 for i, ax in enumerate(axs.flat):
+    
+    levels_1 = np.linspace(12,30,13)
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat,pco2_season_std[i], 
-                     levels =20,cmap= 'rainbow' ,transform=ccrs.PlateCarree(), extend ='both')
+                     levels_1,cmap= 'viridis',transform=ccrs.PlateCarree())
     contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2_season_std[i],
                           colors='black', linewidths=0.6, levels=15)
     ax.clabel(contours, inline=True, fontsize=8, fmt="%.1f")  # label the contours
@@ -207,7 +216,7 @@ cbar = fig.colorbar(im, cax=cbar_ax,orientation = 'horizontal', label= '\u00b5at
 
 
 
-plt.suptitle(' Standard deviation of Seasonal pCO₂ in Indian Ocean (1957 -2023)', fontsize=16, y= 0.95)
+plt.suptitle(' Standard deviation of Seasonal pCO₂ in Indian Ocean (1980 -2019)', fontsize=16, y= 0.95)
 plt.show()
 
 #%%
@@ -217,18 +226,18 @@ fig, axs = plt.subplots(2, 4, figsize=(22, 10),dpi = 170,
                         gridspec_kw={'wspace': 0.01, 'hspace': 0.0001})
 
 season = ['DJF', 'MAM', 'JJA', "SON"]
-levels = np.linspace(300,480,16)
-# --- First row: Seasonal climatology ---
+levels = np.linspace(280,420,15)
+# --- First row: Seasonal climatology ---'rainbow'
 for i, ax in enumerate(axs[0, :]):
     im1 = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i], 
-                      levels, cmap='rainbow', transform=ccrs.PlateCarree(), extend='both')
+                      levels, cmap='PiYG', transform=ccrs.PlateCarree(), extend='both')
     contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i],
                           colors='black', linewidths=0.6, levels=15)
     ax.clabel(contours, inline=True, fontsize=7, fmt="%.1f")
 
-    ax.coastlines()
-    ax.add_feature(cf.BORDERS, linewidth=0.5)
-    ax.add_feature(cf.LAND, color='grey', zorder=11)
+    ax.coastlines(zorder=11)
+    
+    ax.add_feature(cf.LAND, color='lightgrey', zorder=10)
 
     # 👉 Just the season name
     ax.text(0.75, 0.98, f"Mean ({season[i]})", transform=ax.transAxes,
@@ -243,14 +252,14 @@ for i, ax in enumerate(axs[0, :]):
 # --- Second row: Standard deviation ---
 for i, ax in enumerate(axs[1, :]):
     im2 = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2_season_std[i], 
-                      levels=20, cmap='rainbow', transform=ccrs.PlateCarree(), extend='both')
+                      levels=20, cmap='PiYG', transform=ccrs.PlateCarree(), extend='both')
     contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2_season_std[i],
                           colors='black', linewidths=0.6, levels=15)
     ax.clabel(contours, inline=True, fontsize=7, fmt="%.1f")
 
-    ax.coastlines()
-    ax.add_feature(cf.BORDERS, linewidth=0.5)
-    ax.add_feature(cf.LAND, color='grey', zorder=11)
+    ax.coastlines(zorder=11)
+   
+    ax.add_feature(cf.LAND, color='lightgrey', zorder=10)
 
     # 👉 "std_" + season name
     ax.text(0.75, 0.98, f"std ({season[i]})", transform=ax.transAxes,
@@ -279,6 +288,8 @@ plt.show()
 
 #%%  only AS
 
+pco2_s = pco2.sel(lat = slice(-40,30),lon = slice(40,120),mtime = slice('1957-01-01','1957-12-31'))
 
 
-
+p5, p95 = np.nanpercentile(pco2_season_std.values, [5,95])
+print(p5, p95)

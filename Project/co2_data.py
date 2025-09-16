@@ -12,8 +12,8 @@ from cartopy import crs as ccrs
 import cartopy.feature as cfeature
 
 
-file = "C:/Users/HP/Desktop/Project/code/oc_v2024E.flux.nc"
-file2 = "C:/Users/HP/Desktop/Project/code/sst_monthly_io.nc"
+file = "/home/bobco-08/Desktop/24cl05012/CO2/codes/oc_v2024E.flux.nc"
+file2 = "/home/bobco-08/Desktop/24cl05012/CO2/codes/monthly_sst_io.nc"
 
 data = xr.open_dataset(file,decode_timedelta=True)
 data2 = xr.open_dataset(file2,decode_timedelta = True)
@@ -79,150 +79,30 @@ co2_monthly = co2_flux.resample(mtime = '1MS').mean()
 
 co2_clim = co2_monthly.groupby('mtime.month').mean('mtime')
 
-co2_anomaly = co2_monthly.groupby('mtime.month') - co2_clim #no mean so they will be mtime = 804
+co2_anomaly = co2_monthly.groupby('mtime.month') - co2_clim
 
 co2a_t = co2_anomaly.mean(dim=('lat','lon'))
-
-co2a_3mo = co2a_t.rolling(mtime=3, center=True).mean()
 
 
 #IOD index
 
-sst_modified = sst.sel(valid_time = slice("1957-1-1","2023-12-31"))
-
+sst_modified = sst.sel(valid_time = slice('1957-1-1','2023-12-31'))
 sst_clim = sst_modified.groupby('valid_time.month').mean()
 
 sst_anomaly = sst_modified.groupby('valid_time.month')- sst_clim
 
-wbox = sst_anomaly.sel(latitude=slice(10, -10), longitude=slice(50, 70)).mean(dim=('latitude', 'longitude'))
-ebox = sst_anomaly.sel(latitude=slice(0, -10), longitude=slice(90, 110)).mean(dim=('latitude', 'longitude'))
+wbox = sst_anomaly.sel(latitude = slice(10,-10),longitude = slice(50,70)).mean(dim = ('latitude','longitude'))
+ebox = sst_anomaly.sel(latitude =slice(0,-10),longitude = slice(90,110)).mean(dim = ('latitude','longitude'))
 
-iod = wbox-ebox
-
-iod_3mo = iod.rolling(valid_time=3, center=True).mean()
+iod = wbox - ebox
 
 
-#%% plotting iod and co2
+#%% Plotting IOD and CO2
+iod_time = np.linspace(1957,2023,804)
 
-
-plt.subplot(2,1,2)
-plt.plot(iod.valid_time,co2a_t, label='CO2 flux anomaly over IO ', color='black')
-
-plt.grid()
-plt.legend()
-plt.title("Indian Ocean CO2 anomaly from 1957 to 2023")
-plt.ylabel("PgC/yr")
-plt.xlabel("Time")
-plt.tight_layout()
+plt.figure()
+plt.plot(iod_time,iod)
+plt.plot(iod_time,co2a_t)
 plt.show()
 
-plt.subplot(2,1,1)
-plt.plot(iod.valid_time, iod, label='IOD Index', color='black')
-
-# Add horizontal lines
-plt.axhline(0.4, color='red', linestyle='--', linewidth=1)
-plt.axhline(0, color='gray', linestyle='-', linewidth=1)
-plt.axhline(-0.4, color='blue', linestyle='--', linewidth=1)
-
-# Shade regions
-plt.fill_between(iod.valid_time,iod, 0.4, where=(iod > 0.4), color='red', alpha=0.5,label ='PIOD')
-plt.fill_between(iod.valid_time,iod, -0.4, where=(iod <-0.4), color='b', alpha=0.5,label ='NIOD')
-
-plt.grid()
-plt.legend()
-plt.title("Indian Ocean Dipole (IOD) Phases")
-plt.ylabel("IOD Index")
-plt.xlabel("Time")
-plt.tight_layout()
-plt.show()
-
-
-#%% 3 months runnig mean
-
-plt.figure(figsize=(10, 8))
-plt.subplot(2,1,2)
-plt.plot(iod.valid_time,co2a_3mo, label='CO2 flux anomaly over IO ', color='black')
-plt.title("Indian Ocean CO2 anomaly from 1957 to 2023")
-plt.ylabel("PgC/yr")
-plt.xlabel("Time")
-
-plt.subplot(2,1,1)
-plt.plot(iod.valid_time,iod_3mo, label='IOD Index', color='black')
-
-# Add horizontal lines
-plt.axhline(0.4, color='red', linestyle='--', linewidth=1)
-plt.axhline(0, color='gray', linestyle='-', linewidth=1)
-plt.axhline(-0.4, color='blue', linestyle='--', linewidth=1)
-
-# Shade regions
-plt.fill_between(iod_3mo.valid_time,iod_3mo, 0.4, where=(iod_3mo > 0.4), color='red', alpha=0.5,label ='PIOD')
-plt.fill_between(iod_3mo.valid_time,iod_3mo, -0.4, where=(iod_3mo <-0.4), color='b', alpha=0.5,label ='NIOD')
-
-plt.title("Indian Ocean Dipole (IOD) Phases")
-plt.ylabel("IOD Index")
-plt.xlabel("Time")
-
-
-plt.legend()
-plt.tight_layout()
-plt.show()
-
-#%% co2 monthly value
- 
-co2mon_mean = co2_flux.groupby("mtime.month").mean(dim=('mtime'))
-
-fig, axs = plt.subplots(3, 4, figsize=(24, 10), subplot_kw={'projection': ccrs.PlateCarree()})
-months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-for i, ax in enumerate(axs.flat):
-    
-    im = ax.contourf(co2_flux.lon, co2_flux.lat, co2mon_mean[i], 
-                     levels=20 , cmap='coolwarm', transform=ccrs.PlateCarree())
-    
-    ax.set_title(months[i])
-    ax.coastlines()
-    ax.add_feature(cfeature.BORDERS, linewidth=0.5)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-# Add colorbar
-fig.subplots_adjust(right=0.9)
-cbar_ax = fig.add_axes([0.92, 0.25, 0.015, 0.5]) # left,bottom,width,height
-cbar = fig.colorbar(im, cax=cbar_ax)
-cbar.set_label(label ='CO₂ Flux (PgC/yr)',labelpad = 10)
-
-
-plt.suptitle('Monthly Mean CO₂ Flux (1957–2023)', fontsize=16)
-plt.tight_layout(rect=[0, 0, 0.9, 0.95])
-plt.show()
-
-#%% 
-
-co2sen_mean = co2_flux.groupby('mtime.season').mean(dim=("mtime"))
-
-fig, axs = plt.subplots(2, 2, figsize=(10,8), subplot_kw={'projection': ccrs.PlateCarree()})
-season = ['DJF','MAM','JJAS',"SON"]
-
-for i, ax in enumerate(axs.flat):
-    
-    im = ax.contourf(co2_flux.lon, co2_flux.lat, co2sen_mean[i], 
-                     levels=20 , cmap='coolwarm', transform=ccrs.PlateCarree())
-    
-    ax.set_title(season[i])
-    ax.coastlines()
-    ax.add_feature(cfeature.BORDERS, linewidth=0.5)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-# Add colorbar
-fig.subplots_adjust(right=0.9)
-cbar_ax = fig.add_axes([0.92, 0.25, 0.015, 0.5]) # left,bottom,width,height
-cbar = fig.colorbar(im, cax=cbar_ax)
-cbar.set_label(label ='CO₂ Flux (PgC/yr)',labelpad = 10)
-
-
-plt.suptitle('Monthly Mean CO₂ Flux (1957–2023)', fontsize=16)
-plt.tight_layout(rect=[0, 0, 0.9, 0.95])
-plt.show()
 
