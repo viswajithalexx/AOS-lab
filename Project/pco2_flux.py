@@ -23,9 +23,10 @@ pco2 = data['pCO2']
 area = data['dxyp']
 
 pco2_flux = pco2.sel(lat = slice(-40,30),lon = slice(40,120),mtime = slice('1980-01-01','2019-12-31'))
-
+# Convert daily to monthly mean
+pco2_flux_monthly = pco2_flux.resample(mtime="1M").mean()
 #%%
-months = pco2_flux['mtime'].dt.month
+months = pco2_flux_monthly['mtime'].dt.month
 
 # Build season labels as DataArray
 seasons = xr.where(months.isin([12, 1, 2]), "DJF", "")
@@ -34,10 +35,10 @@ seasons = xr.where(months.isin([6, 7, 8]), "JJA", seasons)
 seasons = xr.where(months.isin([9, 10, 11]), "SON", seasons)
 
 # Assign as coordinate (must use .data since 'seasons' is a DataArray)
-pco2_flux = pco2_flux.assign_coords(
+pco2_flux_monthly = pco2_flux_monthly.assign_coords(
     custom_season=("mtime", seasons.data))
 
-pco2sen_mean = pco2_flux.groupby('custom_season').mean()
+pco2sen_mean = pco2_flux_monthly.groupby('custom_season').mean()
 
 pco2sen_mean = pco2sen_mean.where(pco2sen_mean != 0)
 
@@ -55,13 +56,13 @@ pco2sen_mean = pco2sen_mean.reindex({"custom_season": season_order})
 #%%
 
 
-fig, axs = plt.subplots(2, 2, figsize=(15,13),dpi = 150 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':-0.15,'hspace': 0.19})
+fig, axs = plt.subplots(2, 2, figsize=(15,13),dpi = 150 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.15,'hspace': 0.19})
 season = ['DJF','MAM','JJA',"SON"]
 
 for i, ax in enumerate(axs.flat):
     levels = np.linspace(300,450,16)
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i], 
-                     levels,cmap= 'viridis' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
+                     levels,cmap= 'rainbow' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
     
     contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i],
                           colors='black', linewidths=0.6, levels= 20)

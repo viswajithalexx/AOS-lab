@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cf
 
-file = "/home/bobco-08/Downloads/6D32B6C6026814DD3A4D7CCF5CA31201_ferret_listing.nc"
+file = "/home/bobco-08/Desktop/24cl05012/CO2/data/ibr_pco2_mon_1980_2019.nc"
 
 data = xr.open_dataset(file)
 
