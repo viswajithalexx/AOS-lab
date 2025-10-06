@@ -14,29 +14,50 @@ import numpy as np
 # your dataset
 ds = xr.open_dataset("/home/bobco-08/Desktop/24cl05012/CO2/data/ibr_pco2_mon_1980_2019.nc")
 
+lat_res = ds['LAT']
+lon_res = ds['LON']
+time_res = ds['TIME']
+pco2_res = ds['pCO2_Original']
+
+pco2_AS_res = pco2_res.sel(LAT = slice(0,30),LON = slice(38,80))
+
+# Save to new NetCDF
+output_path = "/home/bobco-08/Desktop/24cl05012/CO2/data/pco2_AS_res.nc"
+pco2_AS_res.to_netcdf(output_path)
+
+print("Subset saved to:", output_path)
+#%%
+
+data = xr.open_dataset("/home/bobco-08/Desktop/24cl05012/CO2/data/pco2_AS_res.nc")
+
+
 # build target grid
-lat_1 = np.arange(-30, 28, 2)     # exactly the grid you showed
-lon_1 = np.arange(30, 122.5, 2.5)      # or whatever spacing you need
-target_grid = xr.Dataset(
-    {
-        "lat": (["lat"], lat_1),
-        "lon": (["lon"], lon_1),
-    }
-)
+lat_1 = np.arange(1,30, 2)     # exactly the grid you showed
+lon_1 = np.arange(38.75,80.25, 2.5)      # or whatever spacing you need
+target_grid = xr.Dataset({"lat": (["lat"], lat_1),"lon": (["lon"], lon_1)})
 
 # create a regridder and apply (bilinear, conservative, etc.)
-regridder = xe.Regridder(ds, target_grid, method="bilinear")
-ds_coarse = regridder(ds)
+regridder = xe.Regridder(data, target_grid, method="conservative")
 
-print(ds_coarse.lat.values)       # [-89. -87. ... 87. 89.]
-print(ds_coarse)
+pco2_res_original = data['pCO2_Original']
 
-pco2_res = ds_coarse['pCO2_Original']
+ocean_mask = xr.where(np.isfinite(pco2_res_original), 1.0, 0.0)
+
+numerator = pco2_res_original * ocean_mask
+denominator = ocean_mask
+
+numerator_coarse = regridder(numerator)
+denominator_coarse = regridder(denominator)
+
+# Weighted average
+pco2_regridded = (numerator_coarse / denominator_coarse).where(denominator_coarse > 0)
+pco2_regridded.name = "pCO2_regridded"
+
+pco2_res_coastal = pco2_regridded
 
 #%%
 
-
-months = pco2_res['TIME'].dt.month
+months = pco2_res_coastal['TIME'].dt.month
 
 # Build season labels as DataArray
 seasons = xr.where(months.isin([12, 1, 2]), "DJF", "")
@@ -45,10 +66,10 @@ seasons = xr.where(months.isin([6, 7, 8]), "JJA", seasons)
 seasons = xr.where(months.isin([9, 10, 11]), "SON", seasons)
 
 # Assign as coordinate (must use .data since 'seasons' is a DataArray)
-pco2_flux_res = pco2_res.assign_coords(
+pco2_res_original = pco2_res_coastal.assign_coords(
     custom_season=("TIME", seasons.data))
 
-pco2sen_mean_res = pco2_flux_res.groupby('custom_season').mean().compute()
+pco2sen_mean_res = pco2_res_original.groupby('custom_season').mean().compute()
 
 # define the climatological order you want
 season_order = ["DJF", "MAM", "JJA", "SON"]
@@ -69,11 +90,11 @@ season = ['DJF','MAM','JJA',"SON"]
 
 for i, ax in enumerate(axs.flat):
     levels = np.linspace(300,450,16)
-    im = ax.contourf(pco2_flux_res.lon, pco2_flux_res.lat, pco2sen_mean_res[i], 
-                     levels,cmap= 'rainbow' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
+    im = ax.contourf(pco2sen_mean_res.lon, pco2sen_mean_res.lat, pco2sen_mean_res[i], 
+                     levels,cmap= 'viridis' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
     
-    contours = ax.contour(pco2_flux_res.lon, pco2_flux_res.lat, pco2sen_mean_res[i],
-                          colors='black', linewidths=0.6, levels= 45)
+    contours = ax.contour(pco2sen_mean_res.lon, pco2sen_mean_res.lat, pco2sen_mean_res[i],
+                          colors='black', linewidths=0.6, levels= 29)
     ax.clabel(contours, inline=True, fontsize=8, fmt="%.1f")  # label the contours
     ax.coastlines(zorder =11)
     ax.add_feature(cf.LAND, facecolor="lightgrey", zorder=10)
@@ -106,4 +127,5 @@ cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical', label='\u00b5atm')
 
 plt.suptitle('IBR model Seasonal climatology of pCO₂ in Indian Ocean (1980–2019) ', fontsize=16, y= 0.95)
 plt.show()
+
 
