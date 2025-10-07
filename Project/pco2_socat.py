@@ -22,7 +22,7 @@ time = data['mtime']
 pco2 = data['pCO2']
 area = data['dxyp']
 
-pco2_flux = pco2.sel(lat = slice(0,30,),lon = slice(38,80),mtime = slice('1980-01-01','2019-12-31'))
+pco2_flux = pco2.sel(lat = slice(0,30),lon = slice(38,110),mtime = slice('1980-01-01','2019-12-31'))
 
 
 #%%
@@ -47,19 +47,15 @@ season_order = ["DJF", "MAM", "JJA", "SON"]
 
 pco2sen_mean = pco2sen_mean.reindex({"custom_season": season_order})
 
-#%%
-p5,p90 = np.nanpercentile(pco2sen_mean.values,[5,95])
-print(p5,p90)
-
 #%% Seasonal climatology of pCO₂ in Indian Ocean (1980–2019)
 
-fig, axs = plt.subplots(2, 2, figsize=(15,13),dpi = 150 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.15,'hspace': 0.19})
+fig, axs = plt.subplots(2, 2, figsize=(15,7),dpi = 150 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.03,'hspace': 0.010})
 season = ['DJF','MAM','JJA',"SON"]
 
 for i, ax in enumerate(axs.flat):
-    levels = np.linspace(300,500,16)
+    levels = np.linspace(330,480,50)
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i], 
-                     levels,cmap= 'rainbow' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
+                     levels,cmap= 'PiYG' ,transform=ccrs.PlateCarree(), extend='both' ) #RdYlBu_r nice colormap
     
     contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i],
                           colors='black', linewidths=0.6, levels= 20)
@@ -83,12 +79,13 @@ for i, ax in enumerate(axs.flat):
     if i in[1,3]:
         gl.left_labels = False
         
-# Add colorbar
-cbar_ax = fig.add_axes([0.25, 0.50, 0.5, 0.015]) # left,bottom,width,height
-cbar = fig.colorbar(im, cax=cbar_ax,orientation = 'horizontal', label= '\u00b5atm')
+# Add vertical colorbar
+cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # [left, bottom, width, height]
+cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical', label='\u00b5atm')
 
-plt.suptitle('Seasonal climatology of pCO₂ in Indian Ocean (1980–2019)', fontsize=16, y= 0.95)
+plt.suptitle('Seasonal climatology of pCO₂ in Indian Ocean (1980–2019)', fontsize=16, y=0.95)
 plt.show()
+
 
 #%% Monthly Mean pCO₂ (1980–2019)
 
