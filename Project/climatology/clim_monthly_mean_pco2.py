@@ -64,7 +64,8 @@ pco2_clim.to_netcdf(output_path)
 print("Subset saved to:", output_path)
 
 #%%
-
+import numpy as np
+import xarray as xr
 clim_file = "/home/bobco-08/24cl05012/CO2/data/pco2_climatology_taka.nc"
 
 ds = xr.open_dataset(clim_file)
