@@ -26,6 +26,8 @@ lon1 = data1['lon']
 time1 = data1['mtime']
 pco2_1  = data1['pCO2']
 
+pco2_1 = pco2_1.where(pco2_1 != 0) 
+
 lat2 = data2['LAT']
 lon2 = data2['LON']
 time2 = data2['TIME']
@@ -35,13 +37,15 @@ pco2_2 = data2['pCO2_Original']
 
 clim_as = pco2_0.sel(lat = slice(0,30),lon = slice(38,78)).mean(dim=('lat','lon'))
 
-incois_as = pco2_2.sel(LAT = slice(0,30),LON = slice(38,78))
+incois_as = pco2_2.sel(LAT = slice(0,30),LON = slice(38,78),TIME = slice('1980-01-01','2007-12-31'))
 
-socat_as = pco2_1.sel(lat = slice(0,30),lon = slice(38,78),mtime = slice('1980-01-01','2019-12-31'))
+socat_as = pco2_1.sel(lat = slice(0,30),lon = slice(38,78),mtime = slice('1980-01-01','2007-12-31'))
 
-socat_mon_as = socat_as.groupby('mtime.month').mean(dim = ('lat','lon','mtime'))
+socat_as = socat_as.mean(dim=('lat','lon'))
+socat_mon_as = socat_as.groupby('mtime.month').mean(dim = ('mtime'))
 
-incois_mon_as = incois_as.groupby('TIME.month').mean(dim = ('LAT','LON','TIME'))
+incois_as = incois_as.mean(dim = ('LAT','LON'))
+incois_mon_as = incois_as.groupby('TIME.month').mean(dim = ('TIME'))
 
 #%% AS
 import matplotlib.pyplot as plt
@@ -64,13 +68,17 @@ plt.show()
 
 clim_bob = pco2_0.sel(lat = slice(0,30),lon = slice(78,110)).mean(dim=('lat','lon'))
 
-incois_bob = pco2_2.sel(LAT = slice(0,30),LON = slice(78,110))
+incois_bob = pco2_2.sel(LAT = slice(0,30),LON = slice(78,110),TIME = slice('1980-01-01','2007-12-31'))
 
-socat_bob = pco2_1.sel(lat = slice(0,30),lon = slice(78,110),mtime = slice('1980-01-01','2019-12-31'))
+socat_bob = pco2_1.sel(lat = slice(0,30),lon = slice(78,110),mtime = slice('1980-01-01','2007-12-31'))
 
-socat_mon_bob = socat_bob.groupby('mtime.month').mean(dim = ('lat','lon','mtime'))
+socat_bob = socat_bob.mean(dim = ('lat','lon'))
 
-incois_mon_bob = incois_bob.groupby('TIME.month').mean(dim = ('LAT','LON','TIME'))
+socat_mon_bob = socat_bob.groupby('mtime.month').mean(dim = ('mtime'))
+
+incois_bob = incois_bob.mean(dim=('LAT','LON'))
+
+incois_mon_bob = incois_bob.groupby('TIME.month').mean(dim = ('TIME'))
 
 #%% 
 
@@ -90,13 +98,17 @@ plt.show()
 
 clim_eio = pco2_0.sel(lat = slice(-18,0),lon = slice(30,110)).mean(dim=('lat','lon'))
 
-incois_eio = pco2_2.sel(LAT = slice(-18,0),LON = slice(30,110))
+incois_eio = pco2_2.sel(LAT = slice(-18,0),LON = slice(30,110),TIME = slice('1980-01-01','2007-12-31'))
 
-socat_eio = pco2_1.sel(lat = slice(-18,0),lon = slice(30,110),mtime = slice('1980-01-01','2019-12-31'))
+socat_eio = pco2_1.sel(lat = slice(-18,0),lon = slice(30,110),mtime = slice('1980-01-01','2007-12-31'))
 
-socat_mon_eio = socat_eio.groupby('mtime.month').mean(dim = ('lat','lon','mtime'))
+socat_eio = socat_eio.mean(dim = ('lat','lon'))
 
-incois_mon_eio = incois_eio.groupby('TIME.month').mean(dim = ('LAT','LON','TIME'))
+socat_mon_eio = socat_eio.groupby('mtime.month').mean(dim = ('mtime'))
+
+incois_eio= incois_eio.mean(dim=('LAT','LON'))
+
+incois_mon_eio= incois_eio.groupby('TIME.month').mean(dim = ('TIME'))
 
 #%% 
 
@@ -116,13 +128,17 @@ plt.show()
 
 clim_io = pco2_0.sel(lat = slice(-30,30),lon = slice(30,110)).mean(dim=('lat','lon'))
 
-incois_io = pco2_2.sel(LAT = slice(-30,30),LON = slice(30,110))
+incois_io = pco2_2.sel(LAT = slice(-30,30),LON = slice(30,110),TIME = slice('1980-01-01','2007-12-31'))
 
-socat_io = pco2_1.sel(lat = slice(-30,30),lon = slice(30,110),mtime = slice('1980-01-01','2019-12-31'))
+socat_io = pco2_1.sel(lat = slice(-30,30),lon = slice(30,110),mtime = slice('1980-01-01','2007-12-31'))
 
-socat_mon_io = socat_io.groupby('mtime.month').mean(dim = ('lat','lon','mtime'))
+socat_io = socat_io.mean(dim = ('lat','lon'))
 
-incois_mon_io = incois_io.groupby('TIME.month').mean(dim = ('LAT','LON','TIME'))
+socat_mon_io = socat_io.groupby('mtime.month').mean(dim = ('mtime'))
+
+incois_io= incois_io.mean(dim=('LAT','LON'))
+
+incois_mon_io= incois_io.groupby('TIME.month').mean(dim = ('TIME'))
 
 
 #%% Indian Ocean
@@ -157,6 +173,7 @@ axs[1, 1].plot(month, incois_mon_io, marker='o', linestyle='-', color='blue', la
 axs[1, 1].set_title('Climatology of $pCO_2$ in Indian Ocean')
 axs[1, 1].set_xlabel('Month')
 axs[1, 1].set_ylabel('\u00b5atm')
+axs[1, 1].set_ylim(200,450)
 axs[1, 1].grid(True)
 axs[1, 1].legend()
 
@@ -196,6 +213,7 @@ axs[1, 1].plot(month, incois_mon_eio, marker='o', linestyle='-', color='blue', l
 axs[1, 1].set_title('Climatology of $pCO_2$ in Equatorial Indian Ocean')
 axs[1, 1].set_xlabel('Month')
 axs[1, 1].set_ylabel('\u00b5atm')
+axs[1, 1].set_ylim(200,450)
 axs[1, 1].grid(True)
 axs[1, 1].legend()
 
@@ -236,6 +254,7 @@ axs[1, 1].plot(month, incois_mon_as, marker='o', linestyle='-', color='blue', la
 axs[1, 1].set_title('Climatology of $pCO_2$ in Arabian Sea')
 axs[1, 1].set_xlabel('Month')
 axs[1, 1].set_ylabel('\u00b5atm')
+axs[1, 1].set_ylim(200,450)
 axs[1, 1].grid(True)
 axs[1, 1].legend()
 
@@ -276,9 +295,9 @@ axs[1, 1].plot(month, incois_mon_bob, marker='o', linestyle='-', color='blue', l
 axs[1, 1].set_title('Climatology of $pCO_2$ in Bay of Bengal')
 axs[1, 1].set_xlabel('Month')
 axs[1, 1].set_ylabel('\u00b5atm')
+axs[1, 1].set_ylim(200,450)
 axs[1, 1].grid(True)
 axs[1, 1].legend()
-
 plt.tight_layout()
 plt.show()
 #%%
@@ -288,9 +307,14 @@ incois_sio = pco2_2.sel(LAT = slice(-30,0),LON = slice(30,110))
 
 socat_sio = pco2_1.sel(lat = slice(-30,0),lon = slice(30,110),mtime = slice('1980-01-01','2019-12-31'))
 
-socat_mon_sio = socat_sio.groupby('mtime.month').mean(dim = ('lat','lon','mtime'))
+socat_sio = socat_sio.mean(dim = ('lat','lon'))
 
-incois_mon_sio = incois_sio.groupby('TIME.month').mean(dim = ('LAT','LON','TIME'))
+socat_mon_sio = socat_sio.groupby('mtime.month').mean(dim = ('mtime'))
+
+incois_sio= incois_sio.mean(dim=('LAT','LON'))
+
+incois_mon_sio= incois_sio.groupby('TIME.month').mean(dim = ('TIME'))
+
 
 #%%
 
@@ -328,6 +352,7 @@ axs[1, 1].plot(month, incois_mon_sio, marker='o', linestyle='-', color='blue', l
 axs[1, 1].set_title('Climatology of $pCO_2$ in Southern Indian Ocean')
 axs[1, 1].set_xlabel('Month')
 axs[1, 1].set_ylabel('\u00b5atm')
+axs[1, 1].set_ylim(200,450)
 axs[1, 1].grid(True)
 axs[1, 1].legend()
 
