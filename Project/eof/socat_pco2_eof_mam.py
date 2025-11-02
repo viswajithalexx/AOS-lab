@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Sun Nov  2 11:18:01 2025
+
+@author: bobco-08
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Oct 23 21:19:34 2025
 
 @author: bobco-08
@@ -36,7 +44,7 @@ da_on = da.sel(mtime=da.mtime.dt.month.isin([10,11]))
 
 
 #%%
-da_djf_yearly_mean = da_on.resample(mtime='Y').mean(dim='mtime')
+da_djf_yearly_mean = da_djf.resample(mtime='Y').mean(dim='mtime')
 
 da_djf_yearly_mean = da_djf_yearly_mean.dropna(dim='mtime', how='all')
 djf_climatology = da_djf_yearly_mean.mean(dim='mtime')
@@ -95,12 +103,12 @@ cbar = plt.colorbar(im, orientation='vertical', shrink=0.7)
 cbar.set_label('$\mu$atm',labelpad = 5)
 
 # Setting the suggested title label
-ax.set_title('IO:ON:1959-2022', fontsize=16,pad =20)
+ax.set_title('IO:DJF:1959-2022', fontsize=16,pad =20)
 # ➡️ Add the Subtitle for Variance Explained using ax.text() ⬅️
 ax.text(
     1.09,                                         # Center position (0.5 is the center of the x-axis)
     0.92,                                        # Vertical position (0.95 is just below the top edge)
-    '56.45 % ', # The text string
+    '63.04 % ', # The text string
     horizontalalignment='center',                # Center the text
     transform=ax.transAxes,                      # Use axes coordinates (0 to 1)
     fontsize=12,
@@ -115,7 +123,7 @@ ax.text(
     fontsize=12,
     color='k'
 )
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/ON/IO_ON_19592022_eof1.png', dpi=500, bbox_inches='tight')
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/DJF/IO_DJF_19592022_eof1.png', dpi=500, bbox_inches='tight')
 plt.show()
 #%%
 a,b = np.nanpercentile(covmaps_mode1,[5,95])
@@ -159,15 +167,15 @@ plt.fill_between(
     zorder=1             # Keep behind the line and zero axis
 )
 plt.xlim(years.min(),years.max())
-plt.ylim(-4,4)
+plt.ylim(-3,3)
 plt.ylabel('Standardized', fontsize=12)
-plt.xlabel('Year', fontsize=12)
-plt.title('EOF 1:ON:56.45%', fontsize=14)
+plt.xlabel('Year (DJF Season)', fontsize=12)
+plt.title('EOF 1 63.04%', fontsize=14)
 plt.grid(True, linestyle=':', alpha=0.7)
 plt.legend(loc='upper right')
 
 plt.tight_layout()
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/ON/IO_ON_19592022_pcs1.pdf', dpi=500, bbox_inches='tight')
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/DJF/IO_DJF_19592022_pcs1.pdf', dpi=500, bbox_inches='tight')
 plt.show()
 #%%
 
@@ -194,12 +202,12 @@ cbar = plt.colorbar(im, orientation='vertical', shrink=0.7)
 cbar.set_label('$\mu$atm',labelpad = 5)
 
 # Setting the suggested title label
-ax.set_title('IO:ON:1959-2022', fontsize=16,pad =20)
+ax.set_title('IO:DJF:1959-2022', fontsize=16,pad =20)
 # ➡️ Add the Subtitle for Variance Explained using ax.text() ⬅️
 ax.text(
     1.09,                                         # Center position (0.5 is the center of the x-axis)
     0.92,                                        # Vertical position (0.95 is just below the top edge)
-    '7.68 % ', # The text string
+    '7.72 % ', # The text string
     horizontalalignment='center',                # Center the text
     transform=ax.transAxes,                      # Use axes coordinates (0 to 1)
     fontsize=12,
@@ -214,7 +222,7 @@ ax.text(
     fontsize=12,
     color='k'
 )
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/ON/IO_ON_19592022_eof2.png', dpi=500, bbox_inches='tight')
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/DJF/IO_DJF_19592022_eof2.png', dpi=500, bbox_inches='tight')
 plt.show()
 #%%
 years = np.arange(1959,2023,1)
@@ -245,15 +253,15 @@ plt.fill_between(
     zorder=1             # Keep behind the line and zero axis
 )
 plt.xlim(years.min(),years.max())
-plt.ylim(-4,4)
+plt.ylim(-3,3)
 plt.ylabel('Standardized', fontsize=12)
-plt.xlabel('Year', fontsize=12)
-plt.title('EOF 2:ON:7.68%', fontsize=14)
+plt.xlabel('Year (DJF Season)', fontsize=12)
+plt.title('EOF 2 7.72%', fontsize=14)
 plt.grid(True, linestyle=':', alpha=0.7)
 plt.legend(loc='upper right')
 
 plt.tight_layout()
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/ON/IO_ON_19592022_pcs2.pdf', dpi=500, bbox_inches='tight')
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/DJF/IO_DJF_19592022_pcs2.pdf', dpi=500, bbox_inches='tight')
 plt.show()
 #%%
 plt.figure(figsize =(15,10),dpi = 300)
@@ -266,12 +274,12 @@ cbar = plt.colorbar(im, orientation='vertical', shrink=0.7)
 cbar.set_label('$\mu$atm',labelpad = 5)
 
 # Setting the suggested title label
-ax.set_title('IO:ON:1959-2022', fontsize=16,pad =20)
+ax.set_title('IO:DJF:1959-2022', fontsize=16,pad =20)
 # ➡️ Add the Subtitle for Variance Explained using ax.text() ⬅️
 ax.text(
     1.09,                                         # Center position (0.5 is the center of the x-axis)
     0.92,                                        # Vertical position (0.95 is just below the top edge)
-    '5.27 % ', # The text string
+    '4.09 % ', # The text string
     horizontalalignment='center',                # Center the text
     transform=ax.transAxes,                      # Use axes coordinates (0 to 1)
     fontsize=12,
@@ -286,7 +294,7 @@ ax.text(
     fontsize=12,
     color='k'
 )
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/ON/IO_ON_19592022_eof3.png', dpi=500, bbox_inches='tight')
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/DJF/IO_DJF_19592022_eof3.png', dpi=500, bbox_inches='tight')
 plt.show()
 #%%
 # --- 3. Plot the First PC (Mode 1) ---
@@ -315,15 +323,15 @@ plt.fill_between(
     zorder=1             # Keep behind the line and zero axis
 )
 plt.xlim(years.min(),years.max())
-plt.ylim(-4,5)
+plt.ylim(-3,3)
 plt.ylabel('Standardized', fontsize=12)
-plt.xlabel('Year', fontsize=12)
-plt.title('EOF 3:ON:5.27%', fontsize=14)
+plt.xlabel('Year (DJF Season)', fontsize=12)
+plt.title('EOF 3 4.09%', fontsize=14)
 plt.grid(True, linestyle=':', alpha=0.7)
 plt.legend(loc='upper right')
 
 plt.tight_layout()
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/JJAS/IO_JJAS_19592022_pcs3.pdf', dpi=500, bbox_inches='tight')
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/DJF/IO_DJF_19592022_pcs3.pdf', dpi=500, bbox_inches='tight')
 plt.show()
 #%%
 import numpy as np
@@ -359,9 +367,9 @@ gl1.top_labels = False    # Added to clean up subplot
 gl1.right_labels = False  # Added to clean up subplot
 cbar1 = plt.colorbar(im1, ax=ax1, orientation='vertical', shrink=0.7) # Use ax=ax1
 cbar1.set_label('$\mu$atm', labelpad=5)
-ax1.set_title('IO:ON:1959-2022', fontsize=16, pad=20)
+ax1.set_title('IO:DJF:1959-2022', fontsize=16, pad=20)
 ax1.text(
-    1.09, 0.90, '56.45 % ', # Your original text
+    1.09, 0.90, '63.04 % ', # Your original text
     horizontalalignment='center',
     transform=ax1.transAxes,
     fontsize=12,
@@ -390,10 +398,10 @@ ax2.fill_between(
     facecolor='blue', alpha=0.3, interpolate=True, zorder=1
 )
 ax2.set_xlim(years.min(), years.max())
-ax2.set_ylim(-4,4)
+ax2.set_ylim(-3, 3)
 ax2.set_ylabel('Standardized', fontsize=12)
-ax2.set_xlabel('Year', fontsize=12)
-ax2.set_title('EOF 1 56.45 %', fontsize=14)
+ax2.set_xlabel('Year (DJF Season)', fontsize=12)
+ax2.set_title('EOF 1 63.04%', fontsize=14)
 ax2.grid(True, linestyle=':', alpha=0.7)
 ax2.legend(loc='upper right')
 
@@ -411,9 +419,9 @@ gl3.top_labels = False    # Added to clean up subplot
 gl3.right_labels = False  # Added to clean up subplot
 cbar3 = plt.colorbar(im3, ax=ax3, orientation='vertical', shrink=0.7) # Use ax=ax3
 cbar3.set_label('$\mu$atm', labelpad=5)
-ax3.set_title('IO:ON:1959-2022', fontsize=16, pad=20)
+ax3.set_title('IO:DJF:1959-2022', fontsize=16, pad=20)
 ax3.text(
-    1.09, 0.90, '7.68% ', # Your original text
+    1.09, 0.90, '7.72 % ', # Your original text
     horizontalalignment='center',
     transform=ax3.transAxes,
     fontsize=12,
@@ -442,10 +450,10 @@ ax4.fill_between(
     facecolor='blue', alpha=0.3, interpolate=True, zorder=1
 )
 ax4.set_xlim(years.min(), years.max())
-ax4.set_ylim(-4,4)
+ax4.set_ylim(-3, 3)
 ax4.set_ylabel('Standardized', fontsize=12)
-ax4.set_xlabel('Year', fontsize=12)
-ax4.set_title('EOF 2 7.68%', fontsize=14)
+ax4.set_xlabel('Year (DJF Season)', fontsize=12)
+ax4.set_title('EOF 2 7.72%', fontsize=14)
 ax4.grid(True, linestyle=':', alpha=0.7)
 ax4.legend(loc='upper right')
 
@@ -463,9 +471,9 @@ gl5.top_labels = False    # Added to clean up subplot
 gl5.right_labels = False  # Added to clean up subplot
 cbar5 = plt.colorbar(im5, ax=ax5, orientation='vertical', shrink=0.7) # Use ax=ax5
 cbar5.set_label('$\mu$atm', labelpad=5)
-ax5.set_title('IO:ON:1959-2022', fontsize=16, pad=20)
+ax5.set_title('IO:DJF:1959-2022', fontsize=16, pad=20)
 ax5.text(
-    1.09, 0.90, '5.27 % ', # Your original text
+    1.09, 0.90, '4.09 % ', # Your original text
     horizontalalignment='center',
     transform=ax5.transAxes,
     fontsize=12,
@@ -494,10 +502,10 @@ ax6.fill_between(
     facecolor='blue', alpha=0.3, interpolate=True, zorder=1
 )
 ax6.set_xlim(years.min(), years.max())
-ax6.set_ylim(-4,5)
+ax6.set_ylim(-3, 3)
 ax6.set_ylabel('Standardized', fontsize=12)
-ax6.set_xlabel('Year', fontsize=12)
-ax6.set_title('EOF 3 5.27 %', fontsize=14)
+ax6.set_xlabel('Year (DJF Season)', fontsize=12)
+ax6.set_title('EOF 3 4.09%', fontsize=14)
 ax6.grid(True, linestyle=':', alpha=0.7)
 ax6.legend(loc='upper right')
 
@@ -507,6 +515,5 @@ ax6.legend(loc='upper right')
 fig.tight_layout(pad=3.0) 
 
 # Save the entire figure to a single file
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/ON/IO_ON_19592022_ALL_MODES.pdf', dpi=500, bbox_inches='tight')
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/ON/IO_ON_19592022_ALL_MODES.png', dpi=500, bbox_inches='tight')
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/eof/DJF/IO_DJF_19592022_ALL_MODES.png', dpi=500, bbox_inches='tight')
 plt.show()
