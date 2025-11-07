@@ -23,7 +23,7 @@ lat =  data['lat']
 lon = data['lon']
 time = data['mtime']
 pco2 = data['pCO2']
-area = data['dxyp']
+
 
 pco2_flux = pco2.sel(lat = slice(-30,30),lon = slice(30,120),mtime = slice('1957-01-01','2024-12-31'))
 
@@ -127,7 +127,7 @@ pco2_season_std = pco2_season_std.reindex({"custom_season": season_order})
 
 
 fig, axs = plt.subplots(2, 2, figsize=(15,10), dpi =150,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.02,'hspace': 0.06})
-season = ['DJF','MAM','JJA',"SON"]
+season = ['DJF','MAM','JJAS',"ON"]
 
 for i, ax in enumerate(axs.flat):
     
@@ -166,7 +166,7 @@ cbar.set_ticks = levels_1
 
 plt.suptitle('Standard deviation of Seasonal pCO₂ in Indian Ocean (1957-2024)', fontsize=16, y=0.92)
 
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/standard_deviation_pco2_IO_wcont.tiff', dpi=500, bbox_inches='tight') 
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/standard_deviation_pco2_IO_wcont.png', dpi=500, bbox_inches='tight') 
 plt.show()
 
 #%% Seasonal climatology (top) and Standard deviation (bottom) of pCO₂  in Indian Ocean (1980 -2019)

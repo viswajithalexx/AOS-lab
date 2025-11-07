@@ -24,232 +24,166 @@ time1 = data1['mtime']
 pco2_1  = data1['pCO2']
 
 pco2_1 = pco2_1.where(pco2_1 != 0) 
-#%%
-
+#%% Area selection
 eio = pco2_1.sel(lat = slice(-5,5),lon = slice(30,96))
 so = pco2_1.sel(lat = slice(-0,24),lon = slice(30,70))
 nas = pco2_1.sel(lat = slice(20,30),lon = slice(55,72))
+su = pco2_1.sel(lat = slice(-5,10),lon = slice(92,110))
+#%% nas_djf_variable
+'DJF through resample will calculate DJF of 1957 by (1957 dec+1957 jan+ 1957 Feb) it should be 1957 Dec+1958 Jan and Feb'
 
-#%%
-
-plt.figure(figsize =(15,10),dpi = 300)
-ax = plt.axes(projection = ccrs.PlateCarree())
-ax.coastlines(zorder = 15)
-levels = np.linspace(300,650,25)
-
-im =  plt.contourf(nas.lon, nas.lat, nas.mean(dim =('mtime')),levels,cmap = cmaps.cmp_b2r)
-my_contour_levels = np.arange(300,490, 20)
-
-ax.add_feature(cf.LAND,color = 'grey',zorder =12)
-ax.gridlines(visible= False ,draw_labels=True)
-cbar_ticks = np.arange(370, 650, 20)
-cbar = plt.colorbar(im,ticks=cbar_ticks)
-cbar.set_label('\u00b5atm')
-plt.show()
-#%%
-
-nas_djf = nas.sel(mtime=nas.mtime.dt.month.isin([12, 1, 2]))
-
-nas_djf = nas_djf.resample(mtime='Y').mean(dim='mtime')
-
-nas_djf_clim = nas_djf.mean(dim = ('lat','lon'))
-#%%
-
-nas_mam = nas.sel(mtime=nas.mtime.dt.month.isin([3, 4, 5]))
-
+nas_q = nas.resample(mtime='QS-DEC').mean(dim=('mtime')) #average of 3 months,for 1957 to 2024
+nas_q = nas_q.isel(mtime=slice(1, None)) 
+nas_djf = nas_q.sel(mtime=nas_q.mtime.dt.month == 12) # only taking the djf bin
+nas_djf_clim = nas_djf.mean(dim=('lat','lon'))
+#%% nas_MAM_variable
+nas_mam = nas.sel(mtime=nas.mtime.dt.month.isin([3, 4, 5])) #same year no issue using resample
 nas_mam = nas_mam.resample(mtime='Y').mean(dim='mtime')
-
 nas_mam_clim = nas_mam.mean(dim = ('lat','lon'))
-#%%
+#%% so-jjas_variable
 so_jjas = nas.sel(mtime=so.mtime.dt.month.isin([6,7,8,9]))
-
 so_jjas = so_jjas.resample(mtime='Y').mean(dim='mtime')
-
 so_jjas_clim = so_jjas.mean(dim = ('lat','lon'))
-#%%
+#%% 
+su_on = su.sel(mtime=so.mtime.dt.month.isin([10,11]))
+su_on = su_on.resample(mtime='Y').mean(dim='mtime')
+su_on_clim = su_on.mean(dim = ('lat','lon'))
+#%% eio_variable
 eio_all = eio.resample(mtime = 'Y').mean(dim ='mtime')
-
 eio_clim = eio_all.mean(dim = ('lat','lon'))
-#%% nas_djf
-# Create the line plot
 years = np.arange(1957,2025,1)
-plt.figure(figsize=(12, 6), dpi=200)
-plt.plot(years, nas_djf_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-plt.ylim(310,450)
-# Add labels and title
-plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-plt.title('Spatially Averaged DJF Mean pCO₂ Time Series', fontsize=14)
-plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend()
-plt.tight_layout()
-#%% nas_mam
-plt.figure(figsize=(12, 6), dpi=200)
-plt.plot(years, nas_mam_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-plt.ylim(310,450)
-# Add labels and title
-plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-plt.title('Spatially Averaged MAM Mean pCO₂ Time Series', fontsize=14)
-plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend()
-plt.tight_layout()
-#%%so_jjas
-plt.figure(figsize=(12, 6), dpi=200)
-plt.plot(years, so_jjas_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-plt.ylim(310,450)
-# Add labels and title
-plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-plt.title('Spatially Averaged MAM Mean pCO₂ Time Series', fontsize=14)
-plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend()
-plt.tight_layout()
-#%% eio
-plt.figure(figsize=(12, 6), dpi=200)
-plt.plot(years, eio_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-plt.ylim(310,450)
-# Add labels and title
-plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-
-plt.title('box average of EIO', fontsize=14)
-plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend()
-plt.tight_layout()
-#%%
+#%% trend calculation
 from scipy import stats
 import numpy as np
 
-# --- Assuming 'nas_djf_clim' is your 1D DataArray (time) ---
-# nas_djf_clim = nas_djf.mean(dim=('lat','lon'))
-
-# 1. Get the Y-values (the data)
-y_data = nas_djf_clim.values
-
-# 2. Get the X-values (the time component)
-#    It's best to use the years as numbers
-x_data = nas_djf_clim.mtime.dt.year.values
-
-# 3. Calculate the linear regression statistics
-#    This returns slope, intercept, r-value, p-value, and std-error
+y_data = su_on_clim.values
+x_data = su_on_clim.mtime.dt.year.values
 trend_stats = stats.linregress(x_data, y_data)
 
 # 4. Print the results
 print(f"Slope (Trend): {trend_stats.slope:.2f} units per year")
 print(f"R-value: {trend_stats.rvalue:.2f}")
 print(f"P-value: {trend_stats.pvalue:.4f}")
-#%%
+#%% plot_eio_clim
 import matplotlib.pyplot as plt
 import numpy as np
 
-# --- Assumed variables ---
-# You must have 'years' (1D array) and 'eio_clim' (1D array) defined.
-# For example:
-# years = np.arange(1980, 2020)
-# eio_clim = 350 + np.arange(40) * 0.5 + np.random.randn(40) * 5
-# -------------------------
 
-# --- 1. Calculate the trend line ---
-# Use np.polyfit() to find the slope and intercept of a 1st-degree (linear) fit
-# coeffs[0] will be the slope, coeffs[1] will be the intercept
-coeffs = np.polyfit(years, eio_clim, 1)
+coeffs_eio = np.polyfit(years, eio_clim, 1)
 
-# Use np.polyval() to create the y-values for the trend line
-# This evaluates the linear equation at all 'years' points
-trend_line = np.polyval(coeffs, years)
+trend_line_eio = np.polyval(coeffs_eio, years)
+
+plt.figure(figsize=(12, 6), dpi=200)
+
+plt.scatter(years, eio_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
+
+plt.plot(years, trend_line_eio, color='red', linestyle='--', linewidth=2, label='Linear Trend 1.51 $\mu$atm/year ')
+
+# Add labels and title
+plt.xlabel('Year', fontsize=12)
+plt.ylabel('pCO$_2$ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
+plt.ylim(300, 470)
+plt.title('Mean pCO$_2$ Time Series for the Equatorial Indian Ocean (5°S-5°N, 30°E-96°E)', fontsize=14)
+plt.grid(True, linestyle=':', alpha=0.7)
+plt.legend() # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
+plt.tight_layout()
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_EIO.png', dpi=500, bbox_inches='tight') 
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_EIO.tiff', dpi=500, bbox_inches='tight')
+plt.show()
+#%% plot_so_jjas_clim
+
+coeffs_so = np.polyfit(years, so_jjas_clim, 1)
+
+trend_so = np.polyval(coeffs_so, years)
 
 # --- 2. Plot the original data and the trend line ---
 plt.figure(figsize=(12, 6), dpi=200)
 
 # Plot your original data
-plt.plot(years, eio_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
+plt.scatter(years, so_jjas_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
 
 # ➡️ ADDED: Plot the new trend line ⬅️
-plt.plot(years, trend_line, color='red', linestyle='--', linewidth=2, label='Linear Trend')
+plt.plot(years, trend_so, color='red', linestyle='--', linewidth=2, label='Linear Trend 1.27 $\mu$atm/year' )
 
 # Add labels and title
 plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-plt.ylim(320, 470)
-plt.title('box average of EIO', fontsize=14)
+plt.ylabel('pCO$_2$ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
+plt.ylim(300, 470)
+plt.title('Seasonal (JJAS) pCO$_2$ Time Series for the Northwestern Indian Ocean (0°-24°N, 30°-70°E)', fontsize=14)
 plt.grid(True, linestyle=':', alpha=0.7)
 plt.legend() # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
 plt.tight_layout()
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_SO_jjas.png', dpi=500, bbox_inches='tight') 
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_SO_jjas.tiff', dpi=500, bbox_inches='tight') 
+
+plt.show()
+#%% plot_nas_mam_clim
+coeffs_nas_mam = np.polyfit(years,nas_mam_clim, 1)
+
+
+
+trend_nas_mam = np.polyval(coeffs_nas_mam, years)
+
+
+plt.figure(figsize=(12, 6), dpi=200)
+
+
+plt.scatter(years, nas_mam_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
+
+# ➡️ ADDED: Plot the new trend line ⬅️
+plt.plot(years, trend_nas_mam, color='red', linestyle='--', linewidth=2, label='Linear Trend 1.31 $\mu$atm/year')
+
+# Add labels and title
+plt.xlabel('Year', fontsize=12)
+plt.ylabel('Spatially Averaged pCO$_2$ ($\mu$atm)', fontsize=12) 
+plt.ylim(300, 470)
+plt.title('Seasonal (MAM) pCO$_2$ Time Series for the Northern Arabian Sea (20°N-30°N, 55°E-72°E)', fontsize=14)
+plt.grid(True, linestyle=':', alpha=0.7)
+plt.legend() 
+plt.tight_layout()
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_NAS_mam.png', dpi=500, bbox_inches='tight') 
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_NAS_mam.tiff', dpi=500, bbox_inches='tight') 
+
+plt.show()
+#%% plot nas_djf
+coeffs_nas_djf = np.polyfit(years,nas_djf_clim, 1)
+
+trend_nas_djf = np.polyval(coeffs_nas_djf, years)
+
+plt.figure(figsize=(12, 6), dpi=200)
+
+plt.scatter(years, nas_djf_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
+
+plt.plot(years, trend_nas_djf, color='red', linestyle='--', linewidth=2, label='Linear Trend 1.28 $\mu$atm/year')
+
+# Add labels and title
+plt.xlabel('Year', fontsize=12)
+plt.ylabel('pCO$_2$ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
+plt.ylim(300, 470)
+plt.title('Seasonal (DJF) pCO$_2$ Time Series for the Northern Arabian Sea (20°N-30°N, 55°E-72°E)', fontsize=14)
+plt.grid(True, linestyle=':', alpha=0.7)
+plt.legend() # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
+plt.tight_layout()
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_NAS_DJF.png', dpi=500, bbox_inches='tight') 
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_NAS_DJF.tiff', dpi=500, bbox_inches='tight') 
+
 plt.show()
 #%%
+coeffs_su = np.polyfit(years, su_on_clim, 1)
 
-coeffs = np.polyfit(years, so_jjas_clim, 1)
-
-# Use np.polyval() to create the y-values for the trend line
-# This evaluates the linear equation at all 'years' points
-trend_so_jjas_clim = np.polyval(coeffs, years)
-
-# --- 2. Plot the original data and the trend line ---
+trend_su = np.polyval(coeffs_su, years)-
 plt.figure(figsize=(12, 6), dpi=200)
-
-# Plot your original data
-plt.plot(years, so_jjas_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-
-# ➡️ ADDED: Plot the new trend line ⬅️
-plt.plot(years, trend_so_jjas_clim, color='red', linestyle='--', linewidth=2, label='Linear Trend')
-
-# Add labels and title
+plt.scatter(years, su_on_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
+plt.plot(years, trend_su, color='red', linestyle='--', linewidth=2, label='Linear Trend 1.21 $\mu$atm/year' )
 plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-plt.ylim(320, 470)
-plt.title('Spatially Averaged MAM Mean pCO₂ Time Series', fontsize=14)
+plt.ylabel('pCO$_2$ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
+plt.ylim(300, 470)
+plt.title('Seasonal (ON) pCO$_2$ Time Series for the Eastern Indian Ocean (5°S-10°N, 92°E-110°E)', fontsize=14)
 plt.grid(True, linestyle=':', alpha=0.7)
 plt.legend() # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
 plt.tight_layout()
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_su_on.png', dpi=500, bbox_inches='tight') 
+plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/trend_pco2_su_on.tiff', dpi=500, bbox_inches='tight') 
+
 plt.show()
-#%%
-coeffs = np.polyfit(years,nas_mam_clim, 1)
-
-# Use np.polyval() to create the y-values for the trend line
-# This evaluates the linear equation at all 'years' points
-trend_nas_mam_clim = np.polyval(coeffs, years)
-
-# --- 2. Plot the original data and the trend line ---
-plt.figure(figsize=(12, 6), dpi=200)
-
-# Plot your original data
-plt.plot(years, nas_mam_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-
-# ➡️ ADDED: Plot the new trend line ⬅️
-plt.plot(years, trend_nas_mam_clim, color='red', linestyle='--', linewidth=2, label='Linear Trend')
-
-# Add labels and title
-plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-plt.ylim(320, 470)
-plt.title('Spatially Averaged MAM Mean pCO₂ Time Series', fontsize=14)
-plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend() # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
-plt.tight_layout()
-plt.show()
-#%%
-coeffs = np.polyfit(years,nas_djf_clim, 1)
-
-# Use np.polyval() to create the y-values for the trend line
-# This evaluates the linear equation at all 'years' points
-trend_nas_djf_clim = np.polyval(coeffs, years)
-
-# --- 2. Plot the original data and the trend line ---
-plt.figure(figsize=(12, 6), dpi=200)
-
-# Plot your original data
-plt.plot(years, nas_djf_clim, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-
-# ➡️ ADDED: Plot the new trend line ⬅️
-plt.plot(years, trend_nas_djf_clim, color='red', linestyle='--', linewidth=2, label='Linear Trend')
-
-# Add labels and title
-plt.xlabel('Year', fontsize=12)
-plt.ylabel('Spatially Averaged pCO₂ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
-plt.ylim(320, 470)
-plt.title('Spatially Averaged DJF Mean pCO₂ Time Series', fontsize=14)
-plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend() # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
-plt.tight_layout()
-plt.show()
+#%
