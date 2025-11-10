@@ -71,7 +71,7 @@ season_order = ["DJF", "MAM", "JJA", "SON"]
 pco2_io_original_mean = pco2_io_original_mean.reindex({"custom_season": season_order})
 
 #%%
-a,b = np.nanpercentile(pco2_io_original_mean,[0,100])
+a,b = np.nanpercentile(pco2_io_original_mean,[1,99])
 print(a,b)
 #%%
 
@@ -86,12 +86,12 @@ fig, axs = plt.subplots(2, 2, figsize=(15,7),dpi = 200 ,subplot_kw={'projection'
 season = ['DJF','MAM','JJA',"SON"]
 
 for i, ax in enumerate(axs.flat):
-    levels = np.linspace(330,480,50)
+    levels = np.linspace(250,500,60)
     im = ax.contourf(pco2_io_original_mean.lon,pco2_io_original_mean.lat,pco2_io_original_mean[i], 
-                     levels,cmap= 'PiYG' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
+                     levels,cmap= 'seismic' ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
     
     contours = ax.contour(pco2_io_original_mean.lon,pco2_io_original_mean.lat,pco2_io_original_mean[i],
-                          colors='black', linewidths=0.6, levels= 20)
+                          colors='black', linewidths=0.6, levels= 15)
     
     ax.clabel(contours, inline=True, fontsize=8, fmt="%.1f")  # label the contours
     ax.coastlines(zorder =11)
@@ -117,7 +117,8 @@ for i, ax in enumerate(axs.flat):
 # Add vertical colorbar
 cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # [left, bottom, width, height] in figure coords
 cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical', label='\u00b5atm')
-
+cbar.set_ticks(np.arange(250,500, 25))   # ticks every 10 units (integers)
+cbar.set_ticklabels([str(i) for i in range(250,500,25)])
 
 plt.suptitle('Coarse resolution seasonal climatology of IBR model (1980-2019)', fontsize=16, y= 0.95)
 plt.show()
