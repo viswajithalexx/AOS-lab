@@ -44,12 +44,13 @@ trend_label_djf = f"Trend ({coeff_djf[0]:.2f} $\mu$atm/yr)"
 
 ax1.scatter(years, esio_dclim, marker='o', color='b', label='Spatially Averaged Mean')
 ax1.plot(years,trend_djf, color='red', linestyle='--', linewidth=2, label=trend_label_djf)
+ax1.set_ylim(280,480)
 ax1.set_ylabel('pCO$_2$ ($\mu$atm)', fontsize=12)
 ax1.set_title('Mean pCO$_2$ Trend (DJF)', fontsize=14)
 ax1.grid(True, linestyle=':', alpha=0.7)
 ax1.legend()
 
-#%%
+
 
 other_seasons = [[3, 4, 5], [6, 7, 8, 9], [10, 11]]
 season_names = ['MAM', 'JJAS', 'ON']
@@ -75,7 +76,7 @@ for i in range(len(other_seasons)):
     trend_line_eio = np.polyval(coeff_eio, years)
     trend_stats = stats.linregress(years, data)
     trend_label = f"Trend ({coeff_eio[0]:.2f} $\mu$atm/yr)"
-
+    ax.set_ylim(280,480)
     # E. Plot on the correct axis 'ax' (NOT 'plt.')
     ax.scatter(years, data, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
     ax.plot(years, trend_line_eio, color='red', linestyle='--', linewidth=2, label=trend_label)

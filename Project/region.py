@@ -116,7 +116,7 @@ ax.add_patch(ans_box) # ⬅️ Added new patch to map
 ax.text(eio_lon_slice.start + 2, eio_lat_slice.start + 1, 'EIO', 
         color='black', fontweight='bold', transform=ccrs.PlateCarree(), zorder=10)
 
-ax.text(so_lon_slice.start + 2, so_lat_slice.start + 1, 'WAS', 
+ax.text(so_lon_slice.start + 2, so_lat_slice.start + 1, 'NWIO', 
         color='black', fontweight='bold', transform=ccrs.PlateCarree(), zorder=10)
 
 ax.text(nas_lon_slice.start + 1, nas_lat_slice.start + 1, 'NAS', 
