@@ -81,15 +81,15 @@ seasons = xr.full_like(mo, "", dtype=object)
 
 
 seasons = xr.where((mo >= 3) & (mo <= 5), "MAM",seasons)
-seasons = xr.where((mo >= 6) & (mo <= 8), "JJA", seasons)
-seasons = xr.where((mo >= 9) & (mo <= 11), "SON", seasons)
+seasons = xr.where((mo >= 6) & (mo <= 9), "JJAS", seasons)
+seasons = xr.where((mo >= 10) & (mo <= 11), "ON", seasons)
 seasons = xr.where((mo == 12)|(mo <= 2), "DJF", seasons)
 
 psw  = psw.assign_coords(custom_season=("month", seasons.data))
 
 psw_season_mean = psw.groupby('custom_season').mean()
 
-season_order = ["DJF", "MAM", "JJA", "SON"]
+season_order = ["DJF", "MAM", "JJAS", "ON"]
 psw_season_mean = psw_season_mean.reindex({"custom_season": season_order})
 
 #%%
@@ -97,21 +97,22 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cf
 import cmocean.cm as cm
+import cmaps
 
 
 fig, axs = plt.subplots(2, 2, figsize=(15,10),dpi = 300 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':-0.18,'hspace': 0.06})
-season = ['DJF','MAM','JJA',"SON"]
+season = ['DJF','MAM','JJAS',"ON"]
 
 
 for i, ax in enumerate(axs.flat):
-    levels = np.linspace(250,500,60)
+    levels = np.arange(300,460,10)
     im = ax.contourf(psw_season_mean.lon,psw_season_mean.lat,psw_season_mean[i], 
-                     levels,cmap= cm.balance ,transform=ccrs.PlateCarree()) #RdYlBu_r nice colormap
+                     levels,cmap= cmaps.cmp_b2r ,transform=ccrs.PlateCarree(),extend ='both') #RdYlBu_r nice colormap
     
     contours = ax.contour(psw_season_mean.lon,psw_season_mean.lat,psw_season_mean[i],
                           colors='black', linewidths=0.6, levels= 10)
     
-    ax.clabel(contours, inline=True, fontsize= 7, fmt="%.1f",levels=[contours.levels[0], contours.levels[2], contours.levels[3],contours.levels[5],contours.levels[6],contours.levels[7],contours.levels[9]])  # label the contours
+    ax.clabel(contours, inline=True, fontsize= 7, fmt="%.1f")  # label the contours
     ax.coastlines(zorder =11)
     ax.add_feature(cf.LAND, facecolor="lightgrey", zorder=10)
   
@@ -123,6 +124,8 @@ for i, ax in enumerate(axs.flat):
         va='top', ha='right',)            # vertical & horizontal alignment
    
     gl = ax.gridlines(draw_labels = True,linewidth = 0.5 , color = 'grey', alpha =0.5)
+    gl.xlabel_style = {'fontsize': 14} 
+    gl.ylabel_style = {'fontsize': 14}
     gl.right_labels = False
     gl.top_labels = False
     # remove *bottom labels* only for first row (i = 0,1)
@@ -134,9 +137,12 @@ for i, ax in enumerate(axs.flat):
 
 # Add vertical colorbar
 cbar_ax = fig.add_axes([0.90, 0.15, 0.02, 0.7])  # [left, bottom, width, height] in figure coords
-cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical', label='\u00b5atm')
-cbar.set_ticks(np.arange(250,500, 25))   # ticks every 10 units (integers)
-cbar.set_ticklabels([str(i) for i in range(250,500,25)])
+cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical')
+cbar.set_label(label='\u00b5atm',fontsize = 14)
+cbar.set_ticks = levels
+cbar.ax.tick_params(labelsize = 14)
+   # ticks every 10 units (integers)
 
-plt.suptitle('Seasonal climatology of pCO2 in indian ocean  (4° × 5°)', fontsize=16, y= 0.92)
+
+plt.suptitle('Seasonal climatology of pCO2 in indian ocean 4° × 5° (1970 - 2007)', fontsize=16, y= 0.92)
 plt.show()
