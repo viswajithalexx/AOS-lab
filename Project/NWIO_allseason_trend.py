@@ -35,7 +35,7 @@ nwio_d = nwio_1.isel(mtime = nwio_1.mtime.dt.month == 12)
 nwio_dclim = nwio_d.mean(dim =('lat','lon'))
 
 #%%  nwio
-fig, axs = plt.subplots(2, 2, figsize=(15,10),dpi = 300)
+fig, axs = plt.subplots(2, 2, figsize=(20,18),dpi = 600)
 
 ax1 = axs[0,0]
 x = nwio_dclim.mtime.dt.year.values
@@ -45,13 +45,15 @@ trend_djf = np.polyval(coeff_djf,years)
 trend_djf_stat = stats.linregress(x,y)
 trend_label_djf = f"Trend ({coeff_djf[0]:.2f} $\mu$atm/yr)"
 
-ax1.scatter(years, nwio_dclim, marker='o', color='b', label='Spatially Averaged Mean')
-ax1.plot(years,trend_djf, color='red', linestyle='--', linewidth=2, label=trend_label_djf)
+ax1.plot(years, nwio_dclim, marker='o', color='b', label='Spatially Averaged Mean')
+ax1.plot(years,trend_djf, color='red', linestyle='--', linewidth=3, label=trend_label_djf)
 ax1.set_ylim(280,480)
-ax1.set_ylabel('pCO$_2$ ($\mu$atm)', fontsize=12)
-ax1.set_title('Mean pCO$_2$ Trend (DJF)', fontsize=14)
+ax1.set_xlabel('Years', fontsize = 24)
+ax1.set_ylabel('$\mu$atm', fontsize=24)
+ax1.set_title('Mean pCO$_2$ Trend (DJF)', fontsize=24)
 ax1.grid(True, linestyle=':', alpha=0.7)
-ax1.legend()
+ax1.tick_params(axis='both', which='major', labelsize=24)
+ax1.legend(fontsize = 20)
 
 
 
@@ -81,21 +83,18 @@ for i in range(len(other_seasons)):
     trend_label = f"Trend ({coeff_nwio[0]:.2f} $\mu$atm/yr)"
 
     # E. Plot on the correct axis 'ax' (NOT 'plt.')
-    ax.scatter(years, data, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
-    ax.plot(years, trend_line_nwio, color='red', linestyle='--', linewidth=2, label=trend_label)
+    ax.plot(years, data, marker='o', linestyle='-', color='b', label='Spatially Averaged Mean')
+    ax.plot(years, trend_line_nwio, color='red', linestyle='--', linewidth=3, label=trend_label)
     ax.set_ylim(280,480)
-    # F. Set labels for this specific axis 'ax'
-    if i == 0 or i == 2: # Only label y-axis on the left plots
-        ax.set_ylabel('pCO$_2$ ($\mu$atm)', fontsize=12) 
-    if i >= 1: # Only label x-axis on the bottom plots
-        ax.set_xlabel('Year', fontsize=12)
-        
-    ax.set_title(f'Mean pCO$_2$ Trend ({name})', fontsize=14)
+    ax.set_xlabel('Years', fontsize = 24)
+    ax.set_ylabel('$\mu$atm',fontsize = 24)
+    ax.set_title(f'Mean pCO$_2$  Trend ({name})', fontsize=25)
+    ax.tick_params(axis='both', which='major', labelsize=24)
     ax.grid(True, linestyle=':', alpha=0.7)
-    ax.legend()
+    ax.legend(fontsize = 20)
 
 # --- 5. Final Layout ---
-plt.suptitle('Mean pCO$_2$ Time Series for the Northwestern Indian Ocean (0°-24°N, 30°-70°E)', fontsize=16)
-plt.tight_layout(rect=[0, 0, 1, 0.95]) # Adjust rect to make room for suptitle
+plt.suptitle('Mean pCO$_2$ Time Series for the Northwestern Indian Ocean (5°N-22.5°N, 45°E-65°E)', fontsize=26)
+plt.tight_layout(rect=[0, 0, 1, 0.96]) # Adjust rect to make room for suptitle
 plt.show()
 

@@ -52,14 +52,14 @@ pco2sen_mean = pco2sen_mean.reindex({"custom_season": season_order})
 
 #%% Seasonal climatology of pCO₂ in Indian Ocean (1980–2019)
 
-fig, axs = plt.subplots(2, 2, figsize=(15,10),dpi = 300 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.02,'hspace': 0.06})
+fig, axs = plt.subplots(2, 2, figsize=(15,10),dpi = 600 ,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.02,'hspace': 0.06})
 season = ['DJF','MAM','JJAS',"ON"]
 
 
 for i, ax in enumerate(axs.flat):
-    plot_levels = np.arange(300,480, 10)
+    plot_levels = np.arange(300,460, 10)
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i], 
-                     levels = plot_levels,cmap= cmaps.cmp_b2r ,transform=ccrs.PlateCarree(),extend ='both' ) #RdYlBu_r nice colormap
+                     levels = plot_levels,cmap= cmaps.WhiteBlueGreenYellowRed ,transform=ccrs.PlateCarree(),extend ='both' ) #RdYlBu_r nice colormap
     
     # contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2sen_mean[i],
     #                       colors='black', linewidths=0.6, levels= 20)
@@ -71,11 +71,13 @@ for i, ax in enumerate(axs.flat):
 # Used to add the subplot title inside the plot    
     ax.text(0.75, 0.98, f"Mean ({season[i]})",          # x, y in axes fraction (0–1)
         transform=ax.transAxes,         # interpret coords relative to axes
-        fontsize=12, zorder= 18,fontweight='bold',
+        fontsize=18, zorder= 18,fontweight='bold',
         va='top', ha='right',)            # vertical & horizontal alignment
     gl = ax.gridlines(draw_labels = True,visible = False,linewidth = 0.5 , color = 'grey', alpha =0.2)
     gl.right_labels = False
     gl.top_labels = False
+    gl.xlabel_style = {'fontsize': 15}
+    gl.ylabel_style = {'fontsize': 15}
     # remove *bottom labels* only for first row (i = 0,1)
 
     if i in [0, 1]:
@@ -88,17 +90,19 @@ for i, ax in enumerate(axs.flat):
             
 # Add vertical colorbar
 cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # [left, bottom, width, height] in figure coords
-cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical', label='\u00b5atm')
-cbar.set_ticks = plot_levels   
-plt.suptitle('Seasonal climatology of pCO₂ in Indian Ocean (1957–2024)', fontsize=16, y=0.92)
-plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/seasonal_mean_pco2_IO_wcont.tiff', dpi=500, bbox_inches='tight') 
+cbar = fig.colorbar(im, cax=cbar_ax,ticks = plot_levels ,orientation='vertical')
+cbar.set_label(label='\u00b5atm',fontsize= 20)
+# cbar.set_ticks = plot_levels 
+cbar.ax.tick_params(labelsize = 15)  
+plt.suptitle('Seasonal climatology of pCO₂ in Indian Ocean (1957–2024)', fontsize=21, y=0.95)
+# plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/seasonal_mean_pco2_IO_wcont.tiff', dpi=600, bbox_inches='tight') 
 plt.show()
 
 
 
 
-#%%
 
+#%%
 pco2_flux_years = pco2_flux.assign_coords(year=("mtime", pco2_flux.mtime.dt.year.data))
 
 pco2_season_year = pco2_flux_years.groupby(["year","custom_season"]).mean("mtime")
@@ -126,14 +130,14 @@ pco2_season_std = pco2_season_std.reindex({"custom_season": season_order})
 #%% Standard deviation of Seasonal pCO₂ in Indian Ocean (1980 -2019)
 
 
-fig, axs = plt.subplots(2, 2, figsize=(15,10), dpi =150,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.02,'hspace': 0.06})
+fig, axs = plt.subplots(2, 2, figsize=(15,10), dpi =500,subplot_kw={'projection': ccrs.PlateCarree()},gridspec_kw={'wspace':0.02,'hspace': 0.06})
 season = ['DJF','MAM','JJAS',"ON"]
 
 for i, ax in enumerate(axs.flat):
     
-    levels_1 = np.arange(15,45,2)
+    levels_1 = np.arange(15,47,2)
     im = ax.contourf(pco2_flux.lon, pco2_flux.lat,pco2_season_std[i], 
-                     levels_1,cmap= cmaps.cmp_b2r,transform=ccrs.PlateCarree(),extend ='both')
+                     levels_1,cmap= cmaps.WhiteBlueGreenYellowRed,transform=ccrs.PlateCarree(),extend ='both')
     # contours = ax.contour(pco2_flux.lon, pco2_flux.lat, pco2_season_std[i],
     #                       colors='black', linewidths=0.6, levels=15)
     # ax.clabel(contours, inline=True, fontsize=8, fmt="%.1f")  # label the contours
@@ -150,7 +154,8 @@ for i, ax in enumerate(axs.flat):
     gl = ax.gridlines(draw_labels = True,visible =False,linewidth = 0.5 , color = 'grey', alpha =0.5)
     gl.right_labels = False
     gl.top_labels = False
-    
+    gl.xlabel_style = {'fontsize': 15}
+    gl.ylabel_style = {'fontsize': 15}
     # remove *bottom labels* only for first row (i = 0,1)
     if i in [0, 1]:
         gl.bottom_labels = False
@@ -161,10 +166,11 @@ for i, ax in enumerate(axs.flat):
     
 
 cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])  # [left, bottom, width, height] in figure coords
-cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical', label='\u00b5atm')
-cbar.set_ticks = levels_1   
-
-plt.suptitle('Standard deviation of Seasonal pCO₂ in Indian Ocean (1957-2024)', fontsize=16, y=0.92)
+cbar = fig.colorbar(im, cax=cbar_ax,ticks =levels_1, orientation='vertical')
+cbar.set_label(label='\u00b5atm',fontsize = 20)
+# cbar.set_ticks = levels_1   
+cbar.ax.tick_params(labelsize = 15) 
+plt.suptitle('Standard deviation of Seasonal pCO₂ in Indian Ocean (1957-2024)', fontsize=21, y=0.92)
 
 plt.savefig('/home/bobco-08/24cl05012/CO2/plot/sem_3 plots/standard_deviation_pco2_IO_wcont.png', dpi=500, bbox_inches='tight') 
 plt.show()

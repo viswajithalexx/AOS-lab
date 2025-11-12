@@ -26,10 +26,10 @@ pco2_1  = data1['pCO2']
 pco2_1 = pco2_1.where(pco2_1 != 0) 
 #%%  region selection
 
-eio = pco2_1.sel(lat = slice(-5,5),lon = slice(30,96))
-was = pco2_1.sel(lat = slice(-0,24),lon = slice(40,70))
-nas = pco2_1.sel(lat = slice(20,30),lon = slice(55,72))
-esio = pco2_1.sel(lat = slice(-5,10),lon = slice(92,110))
+eio = pco2_1.sel(lat = slice(-6.5,5),lon = slice(49,92))
+was = pco2_1.sel(lat = slice(5,22.5),lon = slice(45,65))
+nas = pco2_1.sel(lat = slice(22.5,28),lon = slice(56,70))
+esio = pco2_1.sel(lat = slice(-6.6,8),lon = slice(92,109))
 #%% time series plot 1957 - 2024
 
 eio_m = eio.groupby('mtime.month').mean()
@@ -61,19 +61,20 @@ for j in range(len(tseries)):
         plt.show()
 #%%   common plot      
 
-plt.figure(figsize=(12, 6), dpi=200)
+plt.figure(figsize=(12, 6), dpi=600)
 
-plt.plot(months,eio_t, marker='o', linestyle='-', color='r', label='EIO (5°S-5°N, 30°E-96°E)')
-plt.plot(months,was_t, marker='o', linestyle='-', color='b', label='NWIO (0°-24°N, 30°-70°E)')
-plt.plot(months,nas_t, marker='o', linestyle='-', color='g', label='NAS (20°N-30°N, 55°E-72°E)')
-plt.plot(months,esio_t, marker='o', linestyle='-', color='purple', label='ESIO (5°S-10°N, 92°E-110°E)')
+plt.plot(months,eio_t, marker='o', linestyle='-', color='r', label='EIO (6.5°S-5°N, 49°E-92°E)')
+plt.plot(months,was_t, marker='o', linestyle='-', color='b', label='NWIO (5°N-22.5°N, 45°E-65°E)')
+plt.plot(months,nas_t, marker='o', linestyle='-', color='g', label='NAS (22.5°N-28°N, 56°E-70°E)')
+plt.plot(months,esio_t, marker='o', linestyle='-', color='purple', label='ESIO (6.6°S-8°N, 92°E-109°E)')
 # Add labels and title
-plt.ylim(310,420)
-plt.xlabel('Months', fontsize=12)
-plt.ylabel('pCO$_2$ ($\mu$atm)', fontsize=12) # Assuming pCO2 units
+plt.ylim(310,460)
+plt.xlabel('Months', fontsize=20)
+plt.ylabel('pCO$_2$ ($\mu$atm)', fontsize=18) # Assuming pCO2 units
 plt.title('Monthly Climatology of pCO$_2$ of various Indian Ocean regions', fontsize=14)
 plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend() # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
+plt.legend(fontsize =12)
+plt.tick_params(axis='both', which='major', labelsize=14) # This will now show both 'Spatially Averaged Mean' and 'Linear Trend'
 plt.tight_layout()
 plt.show()
 #%% 

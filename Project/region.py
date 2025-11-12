@@ -13,34 +13,33 @@ import matplotlib.patches as mpatches
 
 # --- 1. Define your regions (from your code) ---
 # eio: Equatorial Indian Ocean
-eio_lon_slice = slice(40, 96)
-eio_lat_slice = slice(-5, 5)
+eio_lon_slice = slice(49,92)
+eio_lat_slice = slice(-6.5,5)
 
 # so: Somali Coast
-so_lon_slice = slice(40, 70)
-so_lat_slice = slice(0, 24)
+so_lon_slice = slice(45,65)
+so_lat_slice = slice(5,22.5)
 
 # nas: Northern Arabian Sea
-nas_lon_slice = slice(55, 72)
-nas_lat_slice = slice(20, 27)
+nas_lon_slice = slice(56, 70)
+nas_lat_slice = slice(22.5, 28)
 
 # ⬇️ --- NEW REGION ADDED HERE --- ⬇️
 # ans: Andaman Sea
-ans_lon_slice = slice(92, 110)
-ans_lat_slice = slice(-5, 10)
+ans_lon_slice = slice(92,109)
+ans_lat_slice = slice(-6.6,8)
 # ⬆️ --- END OF NEW REGION --- ⬆️
 
 
 # --- 2. Create the Figure and Axes ---
-fig = plt.figure(figsize=(10, 8), dpi=200)
+fig = plt.figure(figsize=(10, 8), dpi=1500)
 ax = plt.axes(projection=ccrs.PlateCarree())
 
 # Set map extent to focus on the Indian Ocean
-ax.set_extent([20, 120, -30, 40], crs=ccrs.PlateCarree())
+ax.set_extent([20, 120, -30, 30], crs=ccrs.PlateCarree())
 
 # Add map features
 ax.add_feature(cf.LAND, color='lightgrey', zorder=1)
-ax.add_feature(cf.BORDERS, linewidth=0.5, zorder=2)
 ax.coastlines(zorder=3)
 gl = ax.gridlines(draw_labels=True, dms=True, x_inline=False, y_inline=False)
 gl.top_labels = False
