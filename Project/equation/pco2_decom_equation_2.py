@@ -32,31 +32,44 @@ lon2d, lat2d = xr.broadcast(sss.lon, sss.lat)
 # Absolute Salinity
 SA = gsw.SA_from_SP(sss, 0, lon2d, lat2d)
 
+CT = gsw.CT_from_pt(SA,sst)
 # Density (kg/m3)
-rho = gsw.rho(SA, sst, 0)
+rho = gsw.rho(SA,CT, 0)
 
 # Convert mol/m3 → µmol/kg
 dic_ukg = dic * 1e6 / rho
 alk_ukg = alk * 1e6 / rho
+
+dic_ukg = dic_ukg.where(dic_ukg > 0)
+alk_ukg = alk_ukg.where(alk_ukg > 0)
+
 #%%
-out_ref = pyco2.sys(
-    par1=dic_ukg,
-    par2=alk_ukg,
-    par1_type=2,      # DIC
-    par2_type=1,      # ALK
-    temperature=sst,  # in-situ temperature (°C)
-    salinity=sss,
-    pressure=xr.zeros_like(sst),
-    opt_k_carbonic=10,   # Lueker et al. (2000)
+import numpy as np
+import xarray as xr
+import PyCO2SYS as pyco2
+
+# allocate output in memory
+pco2_all = np.empty(dic.shape, dtype=np.float32)
+
+out = pyco2.sys(
+    par1=dic_ukg.values,
+    par2=alk_ukg.values,
+    par1_type=2,
+    par2_type=1,
+    temperature=sst.values,
+    salinity=sss.values,
+    pressure=np.zeros_like(sst.values),
+    opt_k_carbonic=10,
     opt_k_bisulfate=1
 )
 
-pco2_ref = out_ref["pCO2"]
+pco2_all[:] = out["pCO2"].astype("float32")
 
-#%%
-time_chunk = 30   # 30 days (safe)
-
-out_ds = xr.Dataset(
+# wrap in xarray
+ds_out = xr.Dataset(
+    data_vars=dict(
+        pCO2=(("time", "lat", "lon"), pco2_all)
+    ),
     coords=dict(
         time=dic.time,
         lat=dic.lat,
@@ -64,35 +77,20 @@ out_ds = xr.Dataset(
     )
 )
 
-out_ds["pCO2"] = xr.DataArray(
-    np.full(dic.shape, np.nan, dtype=np.float32),
-    dims=("time","lat","lon")
+ds_out.to_netcdf("pCO2_ref.nc")
+
+
+#%%
+out_test = pyco2.sys(
+    par1=float(dic_ukg.isel(time=0, lat=10, lon=10)),
+    par2=float(alk_ukg.isel(time=0, lat=10, lon=10)),
+    par1_type=2,
+    par2_type=1,
+    temperature=float(sst.isel(time=0, lat=10, lon=10)),
+    salinity=float(sss.isel(time=0, lat=10, lon=10)),
+    pressure=0,
+    opt_k_carbonic=10,
+    opt_k_bisulfate=1
 )
 
-out_ds.to_netcdf("pCO2_ref.nc", mode="w")
-#%%
-import PyCO2SYS as pyco2
-
-for i in range(0, dic.sizes["time"], time_chunk):
-
-    sl = slice(i, i + time_chunk)
-
-    out = pyco2.sys(
-        par1=dic_ukg.isel(time=sl),
-        par2=alk_ukg.isel(time=sl),
-        par1_type=2,
-        par2_type=1,
-        temperature=sst.isel(time=sl),
-        salinity=sss.isel(time=sl),
-        pressure=0,
-        opt_k_carbonic=10,
-        opt_k_bisulfate=1
-    )
-
-    pco2_chunk = out["pCO2"]
-
-    with xr.open_dataset("pCO2_ref.nc", mode="a") as ds:
-        ds["pCO2"][sl,:,:] = pco2_chunk
-
-    del out, pco2_chunk
-
+print(out_test["pCO2"])
