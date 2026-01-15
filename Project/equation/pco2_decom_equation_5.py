@@ -26,13 +26,13 @@ sss = data2['so_oras'].isel(depth =0)
 
 #%% nwio
 
-dic_nwio = dic.sel(lat = slice(5,22.5),lon = slice(45,65))
+dic_nwio = dic.sel(lat = slice(-6.5,5),lon = slice(49,92))
 
-alk_nwio = alk.sel(lat = slice(5,22.5),lon = slice(45,65))
+alk_nwio = alk.sel(lat = slice(-6.5,5),lon = slice(49,92))
 
-sst_nwio = sst.sel(lat = slice(5,22.5),lon = slice(45,65),time = slice('1994-01-01','2024-12-01'))
+sst_nwio = sst.sel(lat = slice(-6.5,5),lon = slice(49,92),time = slice('1994-01-01','2024-12-01'))
 
-sss_nwio = sss.sel(lat = slice(5,22.5),lon = slice(45,65),time = slice('1994-01-01','2024-12-01'))
+sss_nwio = sss.sel(lat = slice(-6.5,5),lon = slice(49,92),time = slice('1994-01-01','2024-12-01'))
 
 #%%
 sst_nwio = sst_nwio.interp(
@@ -56,33 +56,214 @@ import numpy as np
 import xarray as xr
 import PyCO2SYS as pyco2
 
-# allocate output in memory
-pco2_all = np.empty(dic_nwio.shape, dtype=np.float32)
+pco2_list = []
 
-out = pyco2.sys(
-    par1=dic_nwio.values,
-    par2=alk_nwio.values,
-    par1_type=2,
-    par2_type=1,
-    temperature=sst_nwio.values,
-    salinity=sss_nwio.values,
-    pressure=np.zeros_like(sst_nwio.values),
-    opt_k_carbonic=10,
-    opt_k_bisulfate=1
-)
+for t in range(dic_nwio.sizes["time"]):
 
-pco2_all[:] = out["pCO2"].astype("float32")
-
-# wrap in xarray
-ds_out = xr.Dataset(
-    data_vars=dict(
-        pCO2=(("time", "lat", "lon"), pco2_all)
-    ),
-    coords=dict(
-        time=dic_nwio.time,
-        lat=dic_nwio.lat,
-        lon=dic_nwio.lon
+    out = pyco2.sys(
+        par1=dic_nwio.isel(time=t).values,
+        par2=alk_nwio.isel(time=t).values,
+        par1_type=2,
+        par2_type=1,
+        temperature=sst_nwio.isel(time=t).values,
+        salinity=sss_nwio.isel(time=t).values,
+        pressure= np.zeros_like(dic_nwio.isel(time=0).values),
+        opt_k_carbonic=10,
+        opt_k_bisulfate=1
     )
-)
 
-ds_out.to_netcdf("pCO2_ref_nwio.nc")
+    pco2_list.append(
+        xr.DataArray(
+            out["pCO2"].astype("float32"),
+            dims=("lat", "lon"),
+            coords={
+                "lat": dic_nwio.lat,
+                "lon": dic_nwio.lon,
+                "time": dic_nwio.time.isel(time=t)
+            }
+        )
+    )
+
+# combine time slices
+pco2_da = xr.concat(pco2_list, dim="time")
+
+# save
+pco2_da.to_netcdf("pCO2_ref_eio.nc")
+
+#%%
+dDIC = 1.0
+dALK = 1.0
+dT   = 0.1
+dS   = 0.1
+#%% DIC sensitivity
+dDIC_da = xr.DataArray(dDIC, 
+                       dims=dic_nwio.dims, 
+                       coords=dic_nwio.coords )
+dic_per = dic_nwio + dDIC_da
+
+#%%
+
+pco2_dic_list = []
+
+for t in range(dic_nwio.sizes["time"]):
+
+    out = pyco2.sys(
+        par1=dic_per.isel(time=t).values,
+        par2=alk_nwio.isel(time=t).values,
+        par1_type=2,
+        par2_type=1,
+        temperature=sst_nwio.isel(time=t).values,
+        salinity=sss_nwio.isel(time=t).values,
+        pressure= np.zeros_like(dic_nwio.isel(time=0).values),
+        opt_k_carbonic=10,
+        opt_k_bisulfate=1
+    )
+
+    pco2_dic_list.append(
+        xr.DataArray(
+            out["pCO2"].astype("float32"),
+            dims=("lat", "lon"),
+            coords={
+                "lat": dic_nwio.lat,
+                "lon": dic_nwio.lon,
+                "time": dic_nwio.time.isel(time=t)
+            }
+        )
+    )
+
+# combine time slices
+pco2_dic_da = xr.concat(pco2_dic_list, dim="time")
+
+# save
+pco2_dic_da.to_netcdf("pCO2_dic_esio.nc")
+#%%
+
+dALK_da = xr.DataArray(dALK, 
+                       dims=dic_nwio.dims, 
+                       coords=dic_nwio.coords )
+alk_per = alk_nwio + dALK_da
+
+
+#%% alk sensitivity
+
+pco2_alk_list = []
+
+for t in range(dic_nwio.sizes["time"]):
+
+    out = pyco2.sys(
+        par1=dic_nwio.isel(time=t).values,
+        par2=alk_per.isel(time=t).values,
+        par1_type=2,
+        par2_type=1,
+        temperature=sst_nwio.isel(time=t).values,
+        salinity=sss_nwio.isel(time=t).values,
+        pressure= np.zeros_like(dic_nwio.isel(time=0).values),
+        opt_k_carbonic=10,
+        opt_k_bisulfate=1
+    )
+
+    pco2_alk_list.append(
+        xr.DataArray(
+            out["pCO2"].astype("float32"),
+            dims=("lat", "lon"),
+            coords={
+                "lat": dic_nwio.lat,
+                "lon": dic_nwio.lon,
+                "time": dic_nwio.time.isel(time=t)
+            }
+        )
+    )
+
+# combine time slices
+pco2_alk_da = xr.concat(pco2_alk_list, dim="time")
+
+# save
+pco2_alk_da.to_netcdf("pCO2_alk_esio.nc")
+#%%
+
+dT_da = xr.DataArray(dT, 
+                       dims=dic_nwio.dims, 
+                       coords=dic_nwio.coords )
+sst_per = sst_nwio + dT_da
+
+
+
+#%% alk sensitivity
+
+pco2_temp_list = []
+
+for t in range(dic_nwio.sizes["time"]):
+
+    out = pyco2.sys(
+        par1=dic_nwio.isel(time=t).values,
+        par2=alk_per.isel(time=t).values,
+        par1_type=2,
+        par2_type=1,
+        temperature=sst_per.isel(time=t).values,
+        salinity=sss_nwio.isel(time=t).values,
+        pressure= np.zeros_like(dic_nwio.isel(time=0).values),
+        opt_k_carbonic=10,
+        opt_k_bisulfate=1
+    )
+
+    pco2_temp_list.append(
+        xr.DataArray(
+            out["pCO2"].astype("float32"),
+            dims=("lat", "lon"),
+            coords={
+                "lat": dic_nwio.lat,
+                "lon": dic_nwio.lon,
+                "time": dic_nwio.time.isel(time=t)
+            }
+        )
+    )
+
+# combine time slices
+pco2_temp_da = xr.concat(pco2_temp_list, dim="time")
+
+# save
+pco2_temp_da.to_netcdf("pCO2_temp_esio.nc")
+#%%
+dS_da = xr.DataArray(dS, 
+                       dims=dic_nwio.dims, 
+                       coords=dic_nwio.coords )
+sss_per = sss_nwio + dS_da
+
+#%% alk sensitivity
+
+pco2_sss_list = []
+
+for t in range(dic_nwio.sizes["time"]):
+
+    out = pyco2.sys(
+        par1=dic_nwio.isel(time=t).values,
+        par2=alk_per.isel(time=t).values,
+        par1_type=2,
+        par2_type=1,
+        temperature=sst_nwio.isel(time=t).values,
+        salinity=sss_per.isel(time=t).values,
+        pressure= np.zeros_like(dic_nwio.isel(time=0).values),
+        opt_k_carbonic=10,
+        opt_k_bisulfate=1
+    )
+
+    pco2_sss_list.append(
+        xr.DataArray(
+            out["pCO2"].astype("float32"),
+            dims=("lat", "lon"),
+            coords={
+                "lat": dic_nwio.lat,
+                "lon": dic_nwio.lon,
+                "time": dic_nwio.time.isel(time=t)
+            }
+        )
+    )
+
+# combine time slices
+pco2_sss_da = xr.concat(pco2_sss_list, dim="time")
+
+# save
+pco2_sss_da.to_netcdf("pCO2_sss_esio.nc")
+
+#%%
+

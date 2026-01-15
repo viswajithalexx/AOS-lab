@@ -54,10 +54,10 @@ sen_s = (pco2_s-pco2_ref)/ dS
 
 #%% derivative of terms
 
-dT_dt = sst.differentiate('time',datetime_unit="D")
-ddic_dt = dic.differentiate('time',datetime_unit="D")
-dalk_dt = alk.differentiate('time',datetime_unit="D")
-dS_dt = sss.differentiate('time',datetime_unit="D")
+dT_dt = sst.groupby('time.month') - sst.groupby('time.month').mean('time')
+ddic_dt = dic.groupby('time.month') - dic.groupby('time.month').mean('time')
+dalk_dt = alk.groupby('time.month') - alk.groupby('time.month').mean('time')
+dS_dt = sss.groupby('time.month') - sss.groupby('time.month').mean('time')
 
 #%% each terms
 T_term = sen_T * dT_dt
@@ -71,7 +71,7 @@ dt =1.0
 
 dpco2_dt_cal = T_term + dic_term + alk_term + S_term  #tendency
 
-pco2_recon = dpco2_dt_cal.cumsum(dim='time')*dt
+# pco2_recon = dpco2_dt_cal.cumsum(dim='time')*dt
 
 
 
@@ -81,10 +81,10 @@ pco2_recon = dpco2_dt_cal.cumsum(dim='time')*dt
 
 #%% anomalies of drivers
 
-uatm_temp =T_term.cumsum(dim='time')*dt
-uatm_dic = dic_term.cumsum(dim='time')*dt
-uatm_alk = alk_term.cumsum(dim='time')*dt
-uatm_sal = S_term.cumsum(dim='time')*dt
+uatm_temp =T_term
+uatm_dic = dic_term
+uatm_alk = alk_term
+uatm_sal = S_term
 
 #%%
 
@@ -94,7 +94,7 @@ plt.figure(figsize=(12, 5))
 
 plt.plot(
     time,
-    pco2_recon.mean(dim =('lat','lon')),
+    dpco2_dt_cal.mean(dim =('lat','lon')),
     label='Reconstructed pCO$_2$ anomaly',
     linewidth=2
 )
