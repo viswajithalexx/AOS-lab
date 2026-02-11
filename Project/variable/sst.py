@@ -12,7 +12,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cf
 import matplotlib.pyplot as plt
 import cmaps
-file1 = '/home/bobco-08/24cl05012/CO2/data/data_1/decomposition_data/cmems_obs-mob_glo_bgc-car_my_irr-i_multi-vars_35.12E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
+file1 = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems_obs-mob_glo_bgc-car_my_irr-i_multi-vars_35.12E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
 
 ds1 = xr.open_dataset(file1)
 
@@ -217,7 +217,7 @@ plt.show()
 
 #%%
 
-file2 = '/home/bobco-08/24cl05012/CO2/data/data_1/decomposition_data/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc'
+file2 = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc'
 
 ds2 = xr.open_dataset(file2)
 
