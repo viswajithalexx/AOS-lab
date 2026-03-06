@@ -27,11 +27,11 @@ sst = sst.rename({list(sst.data_vars)[0]: "pco2_temp_nwio"})
 pco2_ref = pco2_ref.rename({list(pco2_ref.data_vars)[0]: "pco2_ref_nwio"})
 
 # --- Extract DataArrays (IMPORTANT STEP) ---
-pco2_dic_nwio  = dic["pco2_dic_nwio"]
-pco2_alk_nwio  = alk["pco2_alk_nwio"]
-pco2_sss_nwio  = sss["pco2_sss_nwio"]
-pco2_temp_nwio = sst["pco2_temp_nwio"]
-pco2_ref_nwio  = pco2_ref["pco2_ref_nwio"]
+pco2_dic_nwio  = dic["pco2_dic_nwio"].sel(time = slice('1994-01-01','2024-12-01'))
+pco2_alk_nwio  = alk["pco2_alk_nwio"].sel(time = slice('1994-01-01','2024-12-01'))
+pco2_sss_nwio  = sss["pco2_sss_nwio"].sel(time = slice('1994-01-01','2024-12-01'))
+pco2_temp_nwio = sst["pco2_temp_nwio"].sel(time = slice('1994-01-01','2024-12-01'))
+pco2_ref_nwio  = pco2_ref["pco2_ref_nwio"].sel(time = slice('1994-01-01','2024-12-01'))
 
 
 #%%
@@ -42,7 +42,7 @@ data = xr.open_dataset(file)
 data = data.rename({'latitude':'lat', 'longitude': 'lon'})
 dic = data['tco2']
 alk = data['talk']
-
+pco2 = data['spco2']
 data2 = xr.open_dataset('/home/bobco-08/24cl05012/CO2/codes/pCO2_codes/decomposition/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc')
 data2 = data2.rename({'latitude':'lat', 'longitude': 'lon'})
 sst = data2['thetao_oras'].isel(depth =0)
@@ -143,13 +143,13 @@ pco2_reconv = pco2_recon_nwio.values
 
 #%%
 
-pco2_recon = pco2_recon_nwio
+pco2_recon = pco2_recon_nwio.sel(time = slice('1994-01-01','2024-12-31'))
 #%% anomalies of drivers
 
-uatm_temp_nwio =T_term
-uatm_dic_nwio = dic_term
-uatm_alk_nwio = alk_term
-uatm_sal_nwio = S_term
+uatm_temp_nwio =T_term.sel(time = slice('1994-01-01','2024-12-31'))
+uatm_dic_nwio = dic_term.sel(time = slice('1994-01-01','2024-12-31'))
+uatm_alk_nwio = alk_term.sel(time = slice('1994-01-01','2024-12-31'))
+uatm_sal_nwio = S_term.sel(time = slice('1994-01-01','2024-12-31'))
 
 #%%
 
@@ -216,6 +216,11 @@ alk_bar  = alk_bar.resample(time='1Y').sum()
 sal_bar  = sal_bar.resample(time='1Y').sum()
 
 time = pco2_bar['time'].dt.year
+#%%
+
+pco2_annual = pco2.resample(time='1Y').mean()
+pco2_annual_mean = pco2_annual.mean(dim='time')
+pco2_annual_ano = pco2_annual - pco2_annual_mean
 
 
 #%%
@@ -283,3 +288,46 @@ plt.legend(ncol=3, frameon=False)
 plt.grid(axis='y', linestyle='--', alpha=0.4)
 plt.tight_layout()
 plt.show()
+#%%
+
+# --- Annual SUM ---
+pco2_bar = pco2_bar.resample(time='1Y').sum()
+temp_bar = temp_bar.resample(time='1Y').sum()
+dic_bar  = dic_bar.resample(time='1Y').sum()
+alk_bar  = alk_bar.resample(time='1Y').sum()
+sal_bar  = sal_bar.resample(time='1Y').sum()
+
+years = pco2_bar['time'].dt.year.values.astype(float)
+
+# --- Bar settings (fraction of a year) ---
+
+
+plt.figure(figsize=(14,6))
+
+plt.plot(years, temp_bar.values, label='Temperature')
+plt.plot(years, dic_bar.values, label='DIC')
+plt.plot(years, alk_bar.values, label='Alkalinity')
+plt.plot(years, sal_bar.values, label='Salinity')
+
+# --- Reconstructed pCO2 line ---
+plt.plot(
+    years,
+    pco2_bar.values,
+    color='k',
+    marker='o',
+    linewidth=2,
+    label='Reconstructed pCO$_2$'
+)
+
+
+# --- Axis formatting ---
+plt.xlabel('Year')
+plt.ylabel('Annual pCO₂ change (µatm yr$^{-1}$)')
+plt.title('Annual pCO₂ contributions by individual drivers (NWIO)')
+plt.xticks(years, rotation=45)
+plt.axhline(0, color='k', linewidth=0.8)
+plt.legend(ncol=3, frameon=False)
+plt.grid(axis='y', linestyle='--', alpha=0.4)
+plt.tight_layout()
+plt.show()
+#%%

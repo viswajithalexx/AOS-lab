@@ -26,13 +26,13 @@ sss = data2['so_oras'].isel(depth =0)
 
 #%% nwio
 
-dic_nwio = dic.sel(lat = slice(-6.5,5),lon = slice(49,92))
+dic_nwio = dic.sel(lat = slice(-6.6,8),lon = slice(92,109))
 
-alk_nwio = alk.sel(lat = slice(-6.5,5),lon = slice(49,92))
+alk_nwio = alk.sel(lat = slice(-6.6,8),lon = slice(92,109))
 
-sst_nwio = sst.sel(lat = slice(-6.5,5),lon = slice(49,92),time = slice('1994-01-01','2024-12-01'))
+sst_nwio = sst.sel(lat = slice(-6.6,8),lon = slice(92,109),time = slice('1994-01-01','2024-12-01'))
 
-sss_nwio = sss.sel(lat = slice(-6.5,5),lon = slice(49,92),time = slice('1994-01-01','2024-12-01'))
+sss_nwio = sss.sel(lat = slice(-6.6,8),lon = slice(92,109),time = slice('1994-01-01','2024-12-01'))
 
 #%%
 sst_nwio = sst_nwio.interp(
@@ -88,7 +88,7 @@ for t in range(dic_nwio.sizes["time"]):
 pco2_da = xr.concat(pco2_list, dim="time")
 
 # save
-pco2_da.to_netcdf("pCO2_ref_eio.nc")
+pco2_da.to_netcdf("pCO2_ref_esio.nc")
 
 #%%
 dDIC = 1.0

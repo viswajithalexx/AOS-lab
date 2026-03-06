@@ -17,11 +17,18 @@ sst = xr.open_dataset('/home/bobco-08/24cl05012/CO2/codes/pCO2_codes/decompositi
 pco2 = xr.open_dataset('/home/bobco-08/24cl05012/CO2/codes/pCO2_codes/decomposition/pCO2_ref.nc')
 
 
-pco2_dic = dic['pCO2_dic']
-pco2_alk = alk['pCO2_alk']
-pco2_t = sst['pCO2_T']
-pco2_s = sss['pCO2_S']
-pco2_ref = pco2['pCO2']
+pco2_dic = dic['pCO2_dic'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+pco2_alk = alk['pCO2_alk'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+pco2_t = sst['pCO2_T'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+pco2_s = sss['pCO2_S'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+pco2_ref = pco2['pCO2'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+
+pco2_dic_m = pco2_dic.resample(time='1MS').mean()
+pco2_alk_m = pco2_alk.resample(time='1MS').mean()
+pco2_t_m   = pco2_t.resample(time='1MS').mean()
+pco2_s_m   = pco2_s.resample(time='1MS').mean()
+pco2_ref_m = pco2_ref.resample(time='1MS').mean()
+
 
 data = xr.open_dataset('/home/bobco-08/24cl05012/CO2/data/data_1/oc_v2025.pCO2.nc')
 
@@ -35,10 +42,37 @@ SSS = xr.open_dataset("/home/bobco-08/24cl05012/CO2/codes/pCO2_codes/decompositi
 
 #variables
 
-dic = DIC['DIC']
-alk = ALK['ALK']
-sss = SSS['SSS']
-sst = SST['SST']
+dic = DIC['DIC'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+alk = ALK['ALK'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+sss = SSS['SSS'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+sst = SST['SST'].sel(time = slice('2022-01-01','2022-12-31'),lat = slice(5,22.5),lon = slice(45,65))
+#%%
+
+import PyCO2SYS as pyco2
+import gsw as gsw
+
+# Broadcast lon/lat
+lon2d, lat2d = xr.broadcast(sss.lon, sss.lat)
+
+# Absolute Salinity
+SA = gsw.SA_from_SP(sss, 0, lon2d, lat2d)
+
+CT = gsw.CT_from_pt(SA,sst)
+# Density (kg/m3)
+rho = gsw.rho(SA,CT, 0)
+
+# Convert mol/m3 → µmol/kg
+dic_umolkg = dic * 1e6 / rho
+alk_umolkg = alk * 1e6 / rho
+
+dic_ukg = dic_umolkg.where(dic_umolkg > 0)
+alk_ukg = alk_umolkg.where(alk_umolkg > 0)
+
+dic_m = dic_ukg.resample(time='1MS').mean()
+alk_m = alk_ukg.resample(time='1MS').mean()
+sss_m = sss.resample(time='1MS').mean()
+sst_m = sst.resample(time='1MS').mean()
+
 #%%  perturbation
 
 dDIC = 1.0
@@ -47,17 +81,17 @@ dT   = 0.1
 dS   = 0.1
 #%% sensitivity of variables
 
-sen_dic = (pco2_dic-pco2_ref)/ dDIC
-sen_alk = (pco2_alk-pco2_ref)/ dALK
-sen_T = (pco2_t-pco2_ref)/ dT
-sen_s = (pco2_s-pco2_ref)/ dS
+sen_dic = (pco2_dic_m-pco2_ref_m)/ dDIC
+sen_alk = (pco2_alk_m-pco2_ref_m)/ dALK
+sen_T = (pco2_t_m-pco2_ref_m)/ dT
+sen_s = (pco2_s_m-pco2_ref_m)/ dS
 
 #%% derivative of terms
 
-dT_dt = sst.groupby('time.month') - sst.groupby('time.month').mean('time')
-ddic_dt = dic.groupby('time.month') - dic.groupby('time.month').mean('time')
-dalk_dt = alk.groupby('time.month') - alk.groupby('time.month').mean('time')
-dS_dt = sss.groupby('time.month') - sss.groupby('time.month').mean('time')
+dT_dt = sst_m.diff('time')
+ddic_dt = dic_m.diff('time')
+dalk_dt = alk_m.diff('time')
+dS_dt = sss_m.diff('time')
 
 #%% each terms
 T_term = sen_T * dT_dt
@@ -67,11 +101,11 @@ S_term =  sen_s * dS_dt
 
 #%% calculating constructed pco2
 
-dt =1.0
+
 
 dpco2_dt_cal = T_term + dic_term + alk_term + S_term  #tendency
 
-# pco2_recon = dpco2_dt_cal.cumsum(dim='time')*dt
+pco2_recon = dpco2_dt_cal
 
 
 
@@ -130,7 +164,7 @@ plt.plot(
 
 plt.xlabel('Year')
 plt.ylabel('pCO₂ (µatm)')
-plt.title('Contribution of pCO2 by different variables in Indian Ocean')
+plt.title('Contribution of pCO2 by different variables in NWIO')
 plt.xlim(time.min(), time.max())
 plt.legend(frameon=False, ncol=2)
 plt.grid(True, linestyle='--', alpha=0.5)

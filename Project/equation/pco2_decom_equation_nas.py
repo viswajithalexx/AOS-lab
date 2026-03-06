@@ -120,13 +120,13 @@ pco2_reconv = pco2_recon_nas.values
 
 #%%
 
-pco2_recon = pco2_recon_nas.sel(time = slice('2010-01-01','2020-12-31'))
+pco2_recon = pco2_recon_nas.sel(time = slice('2014-01-01','2024-12-31'))
 #%% anomalies of drivers
 
-uatm_temp_nas =T_term.sel(time = slice('2010-01-01','2020-12-31'))
-uatm_dic_nas = dic_term.sel(time = slice('2010-01-01','2020-12-31'))
-uatm_alk_nas = alk_term.sel(time = slice('2010-01-01','2020-12-31'))
-uatm_sal_nas = S_term.sel(time = slice('2010-01-01','2020-12-31'))
+uatm_temp_nas =T_term.sel(time = slice('2014-01-01','2024-12-31'))
+uatm_dic_nas = dic_term.sel(time = slice('2014-01-01','2024-12-31'))
+uatm_alk_nas = alk_term.sel(time = slice('2014-01-01','2024-12-31'))
+uatm_sal_nas = S_term.sel(time = slice('2014-01-01','2024-12-31'))
 
 #%%
 
