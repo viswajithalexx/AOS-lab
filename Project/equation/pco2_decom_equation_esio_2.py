@@ -29,68 +29,43 @@ sss = data2['so_oras'].isel(depth=0)
 sst = sst.sel(lat = slice(-6.6,8),lon = slice(92,109))
 sss = sss.sel(lat = slice(-6.6,8),lon = slice(92,109))
 #%% pco2-term
-
-
 pco2_reg = pco2.mean(dim=('lat', 'lon'))
-
 pco2_annual = pco2_reg.groupby('time.year').mean(dim = 'time')
 
 
-
-# Select JJAS months
-pco2_jas = pco2_reg.sel(time=pco2_reg['time'].dt.month.isin([7,8,9]))
-
-# Group by year
-pco2_jas_grouped = pco2_jas.groupby('time.year')
-pco2_jas_y = pco2_jas_grouped.mean()
+pco2_jja = pco2_reg.sel(time=pco2_reg['time'].dt.month.isin([7,8,9]))
+pco2_jja_grouped = pco2_jja.groupby('time.year')
+pco2_jja_y = pco2_jja_grouped.mean()
 
 
-pco2_mam = pco2_reg.sel(time=pco2_reg['time'].dt.month.isin([3,4,5]))
+pco2_djf = pco2_reg.resample(time='QS-DEC').mean(dim='time')  
+pco2_djf = pco2_djf.isel(time=slice(1,-1))                 
+pco2_djf = pco2_djf.sel(time=pco2_djf.time.dt.month == 12)
+pco2_djf_y = pco2_djf.groupby('time.year').mean()
 
-# Group by year
-pco2_mam_grouped = pco2_mam.groupby('time.year')
-pco2_mam_y = pco2_mam_grouped.mean()
 
-# DJF using quarterly resample starting in December
-# pco2_mam = pco2_reg.resample(time='QS-JAN').mean(dim='time')  # Dec–Jan–Feb mean
-# pco2_mam = pco2_mam.isel(time=slice(1,-1))                 # Skip first incomplete DJF if needed
-# pco2_mam = pco2_mam.sel(time=pco2_jfm.time.dt.month == )
-
-# pco2_mam_y = pco2_mam.groupby('time.year').mean()
-
-# JJAS – DJF difference
-delta_pco2 = (pco2_mam_y - pco2_jas_y)
+delta_pco2 = (pco2_jja_y - pco2_djf_y)
 
 
 #%% t-term
 
-# Average SST over latitude and longitude
+
 sst_reg = sst.mean(dim=['lat', 'lon'])
 
-# Select JJAS months
-sst_jas = sst_reg.sel(time=sst_reg['time'].dt.month.isin([7,8,9]))
 
-# Group by year
-sst_jas_grouped = sst_jas.groupby('time.year')
-
-sst_jas_y = sst_jas_grouped.mean()
+sst_jja = sst_reg.sel(time=sst_reg['time'].dt.month.isin([7,8,9]))
+sst_jja_grouped = sst_jja.groupby('time.year')
+sst_jja_y = sst_jja_grouped.mean()
 
 
-sst_mam = sst_reg.sel(time=sst_reg['time'].dt.month.isin([3,4,5]))
-
-# Group by year
-sst_mam_grouped = sst_mam.groupby('time.year')
-
-sst_mam_y = sst_mam_grouped.mean()
+sst_djf = sst_reg.resample(time='QS-DEC').mean(dim='time')  
+sst_djf = sst_djf.isel(time=slice(1,-1))                 
+sst_djf = sst_djf.sel(time=sst_djf.time.dt.month == 12)
+sst_djf_y = sst_djf.groupby('time.year').mean()
 
 
-# sst_jfm = sst_reg.resample(time='QS-JAN').mean(dim='time')  # Quarterly starting in Dec
-# sst_jfm = sst_jfm.isel(time=slice(1, -1))                 # Skip first incomplete DJF if needed
-# sst_jfm = sst_jfm.sel(time=sst_jfm.time.dt.month == 1)  
 
-# sst_jfm_y = sst_mam.groupby('time.year').mean()
-
-delta_T = (sst_mam_y-sst_jas_y)
+delta_T = (sst_jja_y-sst_djf_y)
 
 
 
@@ -99,113 +74,85 @@ T_term = 2 * pco2_annual * (np.exp(0.0423 * (delta_T / 2)) - 1)
 
 #%% dic_term
 
-# Average over lat/lon
-dic_reg = dic.mean(dim=['lat', 'lon'])
 
-# Annual mean
+dic_reg = dic.mean(dim=['lat', 'lon'])
 dic_annual = dic_reg.groupby('time.year').mean(dim='time')
 
-# Select JJAS months (June, July, August, September if needed)
-dic_jas = dic_reg.sel(time=dic_reg['time'].dt.month.isin([7,8,9]))
-
-# Group by year and take mean over time
-dic_jas_grouped = dic_jas.groupby('time.year')
-
-dic_jas_y = dic_jas_grouped.mean()
 
 
-dic_mam = dic_reg.sel(time=dic_reg['time'].dt.month.isin([3,4,5]))
-
-# Group by year and take mean over time
-dic_mam_grouped = dic_mam.groupby('time.year')
-
-dic_mam_y = dic_mam_grouped.mean()
+dic_jja = dic_reg.sel(time=dic_reg['time'].dt.month.isin([7,8,9]))
+dic_jja_grouped = dic_jja.groupby('time.year')
+dic_jja_y = dic_jja_grouped.mean()
 
 
-# dic_mam = dic_reg.resample(time='QS-JAN').mean(dim='time')  # Quarterly starting in Dec
-# dic_mam  = dic_mam.isel(time=slice(1,-1))                 # Skip first incomplete DJF if needed
-# dic_jfm  = dic_jfm.sel(time=dic_jfm.time.dt.month == 1)  
 
-# dic_jfm_y = dic_jfm.groupby('time.year').mean()
+dic_djf = dic_reg.resample(time='QS-DEC').mean(dim='time')  
+dic_djf = dic_djf.isel(time=slice(1,-1))                 
+dic_djf = dic_djf.sel(time=dic_djf.time.dt.month == 12)
+dic_djf_y = dic_djf.groupby('time.year').mean()
 
-delta_dic = (dic_mam_y - dic_jas_y)
+
+
+
+
+delta_dic = (dic_jja_y - dic_djf_y)
 
 dic_term = (9.5 * (pco2_annual/dic_annual))* delta_dic
 
 
-#%%
-
 #%% alk_term
 
-# Average over lat/lon
-alk_reg = alk.mean(dim=['lat', 'lon'])
 
-# Annual mean
+alk_reg = alk.mean(dim=['lat', 'lon'])
 alk_annual = alk_reg.groupby('time.year').mean(dim='time')
 
-# Select JJAS months (June, July, August, September)
-alk_jas = alk_reg.sel(time=alk_reg['time'].dt.month.isin([7,8,9]))
-
-# Group by year and take mean over time
-alk_jas_grouped = alk_jas.groupby('time.year')
-alk_jas_y = alk_jas_grouped.mean()
-
-alk_mam = alk_reg.sel(time=alk_reg['time'].dt.month.isin([3,4,5]))
-
-# Group by year and take mean over time
-alk_mam_grouped = alk_mam.groupby('time.year')
-alk_mam_y = alk_mam_grouped.mean()
 
 
 
-# DJF using quarterly resample starting in December
-# alk_jfm = alk_reg.resample(time='QS-JAN').mean(dim='time')   # Dec–Jan–Feb mean
-# alk_jfm = alk_jfm.isel(time=slice(1,-1))                  # Skip first incomplete DJF
-# alk_jfm = alk_jfm.sel(time=alk_jfm.time.dt.month == 1)      # Keep DJF labeled by Dec
+alk_jja = alk_reg.sel(time=alk_reg['time'].dt.month.isin([7,8,9]))
+alk_jja_grouped = alk_jja.groupby('time.year')
+alk_jja_y = alk_jja_grouped.mean()
 
-# alk_jfm_y = alk_jfm.groupby('time.year').mean()
 
-# JJAS – DJF difference
-delta_alk = (alk_mam_y - alk_jas_y)
+
+alk_djf = alk_reg.resample(time='QS-DEC').mean(dim='time')  
+alk_djf = alk_djf.isel(time=slice(1,-1))                 
+alk_djf = alk_djf.sel(time=alk_djf.time.dt.month == 12)
+alk_djf_y = alk_djf.groupby('time.year').mean()
+
+
+
+
+
+
+delta_alk = (alk_jja_y - alk_djf_y)
 
 
 alk_term = (- 8.9 * (pco2_annual/alk_annual))* delta_alk
 
-#%% sss_term
 
 #%% sal_term
 
-# Average over lat/lon
 sal_reg = sss.mean(dim=['lat', 'lon'])
-
-# Annual mean
 sal_annual = sal_reg.groupby('time.year').mean(dim='time')
 
-# Select JJAS months (June, July, August, September)
-sal_jas = sal_reg.sel(time=sal_reg['time'].dt.month.isin([7,8,9]))
 
-# Group by year and take mean over time
-sal_jas_grouped = sal_jas.groupby('time.year')
-sal_jas_y = sal_jas_grouped.mean()
 
-sal_mam = sal_reg.sel(time=sal_reg['time'].dt.month.isin([3,4,5]))
-
-# Group by year and take mean over time
-sal_mam_grouped = sal_mam.groupby('time.year')
-sal_mam_y = sal_mam_grouped.mean()
+sal_jja = sal_reg.sel(time=sal_reg['time'].dt.month.isin([7,8,9]))
+sal_jja_grouped = sal_jja.groupby('time.year')
+sal_jja_y = sal_jja_grouped.mean()
 
 
 
+sal_djf = sal_reg.resample(time='QS-DEC').mean(dim='time')  
+sal_djf = sal_djf.isel(time=slice(1,-1))                 
+sal_djf = sal_djf.sel(time=sal_djf.time.dt.month == 12)
+sal_djf_y = sal_djf.groupby('time.year').mean()
 
-# DJF using quarterly resample starting in December
-# sal_jfm = sal_reg.resample(time='QS-JAN').mean(dim='time')   # Dec–Jan–Feb mean
-# sal_jfm = sal_jfm.isel(time=slice(1,-1))                  # Skip first incomplete DJF
-# sal_jfm = sal_jfm.sel(time=sal_jfm.time.dt.month == 1)      # Keep DJF labeled by Dec
 
-# sal_jfm_y = sal_jfm.groupby('time.year').mean()
 
 # JJAS – DJF difference
-delta_sal = (sal_mam_y - sal_jas_y)
+delta_sal = (sal_jja_y - sal_djf_y)
 
 
 sal_term = (0.026* pco2_annual)* delta_sal
@@ -215,6 +162,7 @@ sal_term = (0.026* pco2_annual)* delta_sal
 delta_pco2_cal = T_term + dic_term + alk_term + sal_term
 
 #%%
+
 x1= delta_pco2_cal.values
 x2 = delta_pco2.values
 sq_bias = (x1-x2)**2
@@ -223,23 +171,28 @@ rmse = np.sqrt(np.mean(sq_bias))
 print(f"RMSE = {rmse:.2f} µatm")
 
 
+
+
+
+
 #%% Plot observed vs calculated seasonal ΔpCO2 (1994–2024)
+
 
 # Align observed and calculated ΔpCO2 in time
 delta_pco2, delta_pco2_cal = xr.align(delta_pco2, delta_pco2_cal)
 
 # Extract years and values
 years = delta_pco2['year'].values
-dpco2_obs_esio = delta_pco2.values
-dpco2_cal_esio = delta_pco2_cal.values
+dpco2_obs_eio = delta_pco2.values
+dpco2_cal_eio = delta_pco2_cal.values
 
-plt.figure(figsize=(18,6))
+plt.figure(figsize=(18,6),dpi = 400)
 
 # Observed line
 plt.plot(
     years,
-    dpco2_obs_esio,
-    label='Observed ΔpCO$_2$',
+    dpco2_obs_eio,
+    label='Obs-reconstructed ΔpCO$_2$',
     color='k',
     linewidth=2,
     marker='o'
@@ -248,221 +201,156 @@ plt.plot(
 # Calculated line
 plt.plot(
     years,
-    dpco2_cal_esio,
+    dpco2_cal_eio,
     label='Calculated ΔpCO$_2$',
     color='red',
     linewidth=2,
     marker='s'
 )
-#Find overestimated points
-# mask = dpco2_cal_esio > dpco2_obs_esio
-# for x, y in zip(years[mask], dpco2_cal_esio[mask]):
+
+# mask = dpco2_cal_eio > dpco2_obs_eio
+# for x, y in zip(years[mask], dpco2_cal_eio[mask]):
 #     plt.vlines(x, ymin=0, ymax=y, color='red', linestyle='--', alpha=0.5)
 
 
-plt.xlabel('Year')
-plt.ylabel('ΔpCO$_2$ (µatm)')
-plt.title('Observed vs Calculated Year-wise pCO$_2$ Amplitude (JAS-MAM) in ESIO (1994–2024)')
-plt.xlim(1994,2024)
-# plt.ylim(0,50)
-plt.xticks(years, rotation=45)
-# plt.xticks(years[mask], rotation=45)
+plt.xlabel('Year',fontweight ='bold',fontsize = 16)
+plt.ylabel('ΔpCO$_2$ (µatm)',fontweight ='bold',fontsize = 16)
+plt.title('Obs-reconstructed vs Calculated Year-wise ΔpCO$_2$ (JAS-DJF) in ESIO (1994–2024)',fontweight ='bold',fontsize= 18)
+plt.xlim(1995,2024)
+plt.xticks(years, rotation=45,fontsize = 12)
+
 plt.legend(frameon=False)
 plt.grid(axis='y', linestyle='--', alpha=0.4)
 
 plt.tight_layout()
 plt.show()
 
-#%% Line plot of observed, calculated seasonal ΔpCO2 and residual
-
-import numpy as np
-import matplotlib.pyplot as plt
-import xarray as xr
-
-# Align observed and calculated ΔpCO2
-delta_pco2, delta_pco2_cal = xr.align(delta_pco2, delta_pco2_cal)
-
-# Extract years and values
-years = delta_pco2['year'].values
-dpco2_obs = delta_pco2.values
-dpco2_cal = delta_pco2_cal.values
-
-# Residual (misfit)
-residual = dpco2_cal - dpco2_obs
-
-plt.figure(figsize=(16, 6))
-
-# Observed and calculated ΔpCO2
-plt.plot(
-    years,
-    dpco2_obs,
-    marker='o',
-    linewidth=2,
-    label='Observed ΔpCO$_2$'
-)
-
-plt.plot(
-    years,
-    dpco2_cal,
-    marker='s',
-    linewidth=2,
-    label='Calculated ΔpCO$_2$'
-)
-
-# Residual
-plt.plot(
-    years,
-    residual,
-    marker='^',
-    linestyle='--',
-    linewidth=1.8,
-    label='Residual (Calc − Obs)'
-)
-
-plt.axhline(0, color='k', linewidth=0.8)
-
-plt.xlabel('Year')
-plt.ylabel('ΔpCO$_2$ (µatm)')
-plt.title('Observed vs Calculated pCO$_2$ and Residual of ESIO (1994–2024)')
-plt.legend(frameon=False, ncol=3)
-plt.grid(True, linestyle='--', alpha=0.4)
-
-plt.tight_layout()
-plt.savefig(
-    "/home/bobco-08/24cl05012/CO2/plot/equation_pco2/valid_plots_eqn/esio/esio_obs_cal_res",
-    dpi=500,
-    bbox_inches="tight"
-)
-plt.show()
 
 #%%
-import numpy as np
-import matplotlib.pyplot as plt
-import xarray as xr
 
-# ---- Align all data in time ----
-delta_pco2, T_term, dic_term, alk_term, sal_term, delta_pco2_cal = xr.align(
-    delta_pco2, T_term, dic_term, alk_term, sal_term, delta_pco2_cal
+# ---- Align variables ----
+T_term, dic_term, alk_term, sal_term = xr.align(
+    T_term, dic_term, alk_term, sal_term
 )
 
 years = delta_pco2['year'].values
+x = np.arange(len(years))
 
-obs = delta_pco2.values
 T   = T_term.values
 DIC = dic_term.values
 ALK = alk_term.values
 SAL = sal_term.values
-TOT = delta_pco2_cal.values
 
-x = np.arange(len(years))
+plt.figure(figsize=(20,6))
 
-# width of each bar
-w = 0.12
+# ---- Line plots of contributions ----
+plt.plot(x, T,   '-o', linewidth=2.5, label='Temperature')
+plt.plot(x, DIC, '-s', linewidth=2.5, label='DIC')
+plt.plot(x, ALK, '-^', linewidth=2.5, label='Alkalinity')
+plt.plot(x, SAL, '-d', linewidth=2.5, label='Salinity')
 
-plt.figure(figsize=(24, 7))
+# Zero reference line
+plt.axhline(0, color='black', linewidth=1)
 
-plt.bar(x - 2.5*w, T,   w, label='Temperature')
-plt.bar(x - 1.5*w, DIC, w, label='DIC')
-plt.bar(x - 0.5*w, ALK, w, label='Alkalinity')
-plt.bar(x + 0.5*w, SAL, w, label='Salinity')
-plt.bar(x + 1.5*w, obs, w, label='Observed ΔpCO$_2$', color='k')
-plt.bar(x + 2.5*w, TOT, w, label='Reconstructed ΔpCO$_2$', color='gray')
+# Axis formatting
+plt.xticks(x[::2], years[::2], rotation=45, fontsize=14)
+plt.yticks(fontsize=14)
 
-plt.axhline(0, color='k', linewidth=0.8)
+plt.ylabel('ΔpCO$_2$ (µatm)', fontsize=18)
+plt.title('pCO$_2$ Decomposition (JJA–DJF)\nNWIO', fontsize=20)
 
-plt.xticks(x[::2], years[::2], rotation=45)
-plt.ylabel('Seasonal ΔpCO$_2$ (µatm)')
-plt.title('Seasonal pCO$_2$ Decomposition (MAM − JAS)\nESIO')
-plt.legend(ncol=6, frameon=False)
+# Legend
+plt.legend(ncol=4, frameon=False, fontsize=14)
+
+# Grid
 plt.grid(axis='y', linestyle='--', alpha=0.4)
 
 plt.tight_layout()
-plt.savefig(
-    "/home/bobco-08/24cl05012/CO2/plot/equation_pco2/valid_plots_eqn/esio/esio_drivers",
-    dpi=500,
-    bbox_inches="tight"
-)
-
 plt.show()
 #%%
-import matplotlib.pyplot as plt
-import numpy as np
+mean_dT = np.mean(delta_T)
+mean_dDIC = np.mean(delta_dic)
+mean_dALK = np.mean(delta_alk)
+mean_dS = np.mean(delta_sal)
 
-pco2_clim = pco2_reg.groupby('time.month').mean()
+pco2_annual_mean = pco2_annual.mean(dim=('year'))
+DIC_annual_mean = dic_annual.mean(dim=('year'))
+ALK_annual_mean =alk_annual.mean(dim=('year'))
 
-months = pco2_clim['month'].values
-values = pco2_clim.values
+T_mean   = 2 * pco2_annual_mean * (np.exp(0.0423 * (mean_dT / 2)) - 1)
+DIC_mean = (9.5 * (pco2_annual_mean/DIC_annual_mean))* mean_dDIC
+ALK_mean = (- 8.9 * (pco2_annual_mean/ALK_annual_mean))* mean_dALK
+SAL_mean = (0.026* pco2_annual_mean)* mean_dS
 
-# --- Find peak and minimum month indices ---
-imax = int(values.argmax())
-imin = int(values.argmin())
 
-# --- Indices for ±1 month (with circular wrap) ---
-def wrap_idx(i):
-    return i % 12
+cal_pco2_mean = T_mean+DIC_mean+ALK_mean+SAL_mean 
+delta_pco2_mean = np.mean(pco2_jja_y - pco2_djf_y)
 
-peak_window = [wrap_idx(imax-1), imax, wrap_idx(imax+1)]
-min_window  = [wrap_idx(imin-1), imin, wrap_idx(imin+1)]
 
-plt.figure(figsize=(10, 5))
+sigma_SAL = np.std(delta_sal, ddof=1)
+sigma_T = np.std(delta_T, ddof=1)
+sigma_DIC = np.std(delta_dic, ddof=1)
+sigma_ALK = np.std(delta_alk, ddof=1)
+sigma_cal = np.std(delta_pco2_cal, ddof=1)
+sigma_obs = np.std(delta_pco2, ddof=1)
 
-# Main line
-plt.plot(months, values, marker='o', linewidth=2, color='k')
 
-# Highlight peak ±1 months (red)
-plt.scatter(months[peak_window], values[peak_window],
-            color='red', s=90, zorder=5, label='Peak ±1 month')
 
-# Highlight minimum ±1 months (blue)
-plt.scatter(months[min_window], values[min_window],
-            color='blue', s=90, zorder=5, label='Min ±1 month')
 
-# Optional labels
-for i in peak_window:
-    plt.text(months[i], values[i]-2, f'{values[i]:.0f}', ha='center', color='red')
-
-for i in min_window:
-    plt.text(months[i], values[i]-5, f'{values[i]:.0f}', ha='center', color='blue')
-
-plt.xticks(range(1, 13),
-           ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'])
-
-plt.xlabel('Month')
-plt.ylabel('pCO$_2$ (µatm)')
-plt.title('Monthly Climatology of Surface pCO$_2$ in ESIO\n(Peak and Trough ±1 Month Highlighted)')
-
-plt.legend()
-plt.grid(True, linestyle='--', alpha=0.5)
-plt.tight_layout()
-
-plt.savefig(
-    "/home/bobco-08/24cl05012/CO2/plot/equation_pco2/valid_plots_eqn/esio/mon_clim_esio_peak_trough.png",
-    dpi=500,
-    bbox_inches="tight"
-)
-plt.show()
 #%%
-plt.figure(figsize=(18,7),dpi = 500)
 
-plt.plot(years, dpco2_obs, marker='o', linewidth=2.5, label='Observed ΔpCO$_2$', color='k')
-plt.plot(years, dpco2_cal, marker='s', linewidth=2.5, label='Reconstructed ΔpCO$_2$', color='gray')
 
-plt.plot(years, T_term,  marker='^', label='Temp-driven')
-plt.plot(years, dic_term, marker='d',  label='DIC-driven')
-plt.plot(years, alk_term, marker='v',  label='ALK-driven')
-plt.plot(years, sal_term, marker='x',  label='Salinity-driven')
+variables = ['Temperature', 'DIC', 'Alkalinity', 'Salinity','Calculated ΔpCO$_2$','Obs-recon ΔpCO$_2$']
+means = [T_mean, DIC_mean, ALK_mean, SAL_mean,cal_pco2_mean,delta_pco2_mean]
 
-plt.axhline(0, color='k', linewidth=0.8)
+colors = ['red', 'green', 'pink', 'blue','grey','lightblue']
 
-plt.xlabel('Year')
-plt.ylabel('ΔpCO$_2$ (µatm)')
-plt.title('Annual Time Series of pCO$_2$ and Drivers (MAM − JAS)\nESIO (1994–2024)')
-plt.legend(ncol=3, frameon=False)
-plt.grid(True, linestyle='--', alpha=0.4)
+x = np.arange(len(variables))*0.26
+
+fig, ax = plt.subplots(figsize=(19,12),dpi = 400)
+
+errors = [sigma_T, sigma_DIC, sigma_ALK, sigma_SAL,sigma_cal, sigma_obs]
+
+bars = []
+for i, (var, mean, col) in enumerate(zip(variables, means, colors)):
+    bar = ax.bar(x[i],mean,color=col,width=0.25,label=var,yerr=errors[i],capsize=12,ecolor='black',
+                       error_kw={'elinewidth':3}
+)
+    bars.append(bar[0])
+ax.set_xlim(-0.2, x[-1] + 0.2)
+
+ax.axhline(0, color='k', linewidth=0.8)
+
+ax.set_ylabel('Mean ΔpCO$_2$ (µatm)',fontsize=18,fontweight = 'bold',labelpad=15)
+ax.set_yticklabels(ax.get_yticks(), fontsize=12)
+ax.set_title('Seasonal contrast between JAS and DJF of ΔpCO$_2$ in ESIO ',fontsize=18,fontweight = 'bold')
+
+# Remove x-axis labels
+ax.set_xticks([])
+
+ax.grid(axis='y', linestyle='--', alpha=0.2)
+
+# ---- Add values above bars ----
+# ---- Add values near the x-axis ----
+y_axis_offset = min((np.array(means))) *1.76  # small vertical offset from x-axis
+
+for i, bar in enumerate(bars):
+    val = means[i]
+    text_color = 'red' if val < 0 else 'black'  # red for negative, black for positive
+
+    ax.text(
+        bar.get_x() + bar.get_width()/2,  # center of the bar
+        y_axis_offset,                     # fixed height near x-axis
+        f'{val:.2f} µatm',                # show mean value
+        ha='center',
+        va='bottom',
+        fontsize=15,
+        color=text_color,
+        fontweight='bold'
+    )
+
+ax.set_xticks(x)
+ax.set_xticklabels(variables,fontsize=15,fontweight = 'bold')
 
 plt.tight_layout()
-plt.savefig(
-    "/home/bobco-08/24cl05012/CO2/plot/equation_pco2/valid_plots_eqn/esio/esio_annual_timeseries_drivers.png",
-    dpi=500, bbox_inches="tight"
-)
 plt.show()
