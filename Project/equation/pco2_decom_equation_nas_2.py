@@ -12,7 +12,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 
-file = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems_obs-mob_glo_bgc-car_my_irr-i_multi-vars_35.12E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
+file = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems/cmems_obs-mob_glo_bgc-car_my_irr-i_multi-vars_35.12E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
 
 data = xr.open_dataset(file)
 data = data.rename({'latitude':'lat', 'longitude': 'lon'})
@@ -23,7 +23,7 @@ dic = data['tco2'].sel(lat = slice(22.5,28),lon = slice(56,70))
 alk = data['talk'].sel(lat = slice(22.5,28),lon = slice(56,70))
 pco2 = data['spco2'].sel(lat = slice(22.5,28),lon = slice(56,70))
 
-data2 = xr.open_dataset('/home/bobco-08/24cl05012/CO2/data/data_1/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc')
+data2 = xr.open_dataset('/home/bobco-08/24cl05012/CO2/data/data_1/cmems/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc')
 data2 = data2.rename({'latitude':'lat', 'longitude': 'lon'})
 sst = data2['thetao_oras'].isel(depth=0)
 sss = data2['so_oras'].isel(depth=0)
