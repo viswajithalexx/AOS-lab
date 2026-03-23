@@ -116,9 +116,9 @@ co2f_on = co2f_io.sel(time= co2f_io.time.dt.month.isin([10,11]))
 co2f_on = co2f_on.resample(time='YE').mean(dim='time')
 on_mean = co2f_on.mean(dim='time')
 
-#%% Seasonal climatology of pCO₂ in Indian Ocean (1980–2019)
+#%% Seasonal climatology of fCO₂ in Indian Ocean (1980–2019)
 
-fig, axs = plt.subplots(2, 2, figsize=(18,14),dpi = 500,
+fig, axs = plt.subplots(2, 2, figsize=(18,14),
                         subplot_kw={'projection': ccrs.PlateCarree()},
                         gridspec_kw={'wspace':0.06,'hspace': -0.09})
 season = ['DJF','MAM','JJAS',"ON"]
@@ -194,6 +194,174 @@ cbar.set_label('flux (gC m$^{-2}$ yr$^{-1}$)',fontsize = 20,labelpad=12,
 #     y=0.88
 # )
 plt.show()
+#%% standard deviation of seasonal plots 
+
+djf_std = co2f_djf.std(dim =('time'))
+jjas_std = co2f_jjas.std(dim =('time'))
+mam_std = co2f_mam.std(dim =('time'))
+on_std = co2f_on.std(dim =('time'))
+
+fig, axs = plt.subplots(2, 2, figsize=(18,14),
+                        subplot_kw={'projection': ccrs.PlateCarree()},
+                        gridspec_kw={'wspace':0.06,'hspace': -0.09})
+season = ['DJF','MAM','JJAS',"ON"]
+season_std = [djf_std,mam_std,jjas_std,on_std]
+
+std_lv = np.arange(0,16,1)
+stlv = np.arange(0,16,1)
+#plotting
+
+for i, ax in enumerate(axs.flat):
+    im = ax.contourf(lon,lat,season_std[i],levels =std_lv,
+                     cmap= 'turbo',
+                     transform=ccrs.PlateCarree(),extend = 'both') 
+    ax.coastlines(zorder =15)
+    ax.coastlines(zorder = 12)
+    land = cf.NaturalEarthFeature(
+        'physical', 'land', '10m',
+        edgecolor='black',
+        facecolor='gray'
+    )
+    ax.add_feature(land, zorder=2)
+
+# subplot individual title
+
+    ax.text(0.75, 0.98, f"Mean ({season[i]})",transform=ax.transAxes,         
+        fontsize=18, zorder= 18,fontweight='bold',
+        va='top', ha='right',)       
+
+#contours  
+ 
+    # contours = ax.contour(lon,lat,co2f_season[i],levels = season_lv,
+    #                           colors='black', linewidths=0.6)
+    # ax.clabel(contours, inline=True, fontsize=12, fmt="%.0f")        
+
+# ticks and gridlines
+
+    ax.set_xticks(xticks, crs=ccrs.PlateCarree()) # for adding ticks 
+    ax.set_yticks(yticks, crs=ccrs.PlateCarree())
+    
+    ax.tick_params(axis='both',
+                   direction='out',   # makes arrow-like ticks
+                   length=5,
+                   width=1.2,
+                   labelsize=20)
+    
+      # Hide labels depending on subplot index
+    if i in [0, 1]:          # top row
+        ax.tick_params(labelbottom=False)
+    
+    if i in [1, 3]:          # right column
+        ax.tick_params(labelleft=False)
+
+#colorbar
+
+cbar_ax = fig.add_axes([0.91, 0.15, 0.02, 0.70]) 
+cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical',ticks =stlv )
+cbar.ax.tick_params(axis='both', which='major',
+               direction='out',   # ticks pointing outward
+               length=6,          # tick length
+               width=1,labelsize=20)
+
+
+#titles
+cbar.set_label('flux (gC m$^{-2}$ yr$^{-1}$)',fontsize = 20,labelpad=12,
+               fontweight = 'bold')
+# fig.suptitle(
+#     'Seasonal Air–Sea CO$_2$ Flux in Indian Ocean (1994–2024)',
+#     fontsize=24,
+#     fontweight='bold',
+#     y=0.88
+# )
+plt.show()
+
+#%% standaed deviation of seasonal anomalies fCO2 in indian ocean
+
+djf_ano = co2f_djf - djf_mean
+mam_ano = co2f_mam - mam_mean
+jjas_ano = co2f_jjas - jjas_mean
+on_ano = co2f_on - on_mean
+
+djf_ano_std = djf_ano.std(dim=('time'))
+mam_ano_std = mam_ano.std(dim=('time'))
+jjas_ano_std = jjas_ano.std(dim=('time'))
+on_ano_std = on_ano.std(dim=('time'))
+
+
+fig, axs = plt.subplots(2, 2, figsize=(18,14),
+                        subplot_kw={'projection': ccrs.PlateCarree()},
+                        gridspec_kw={'wspace':0.06,'hspace': -0.09})
+season = ['DJF','MAM','JJAS',"ON"]
+season_ano_std = [djf_ano_std,mam_ano_std,jjas_ano_std,on_ano_std]
+
+std_ano = np.arange(0,16,1)
+ano_lv = np.arange(0,16,1)
+#plotting
+
+for i, ax in enumerate(axs.flat):
+    im = ax.contourf(lon,lat,season_ano_std[i],levels =std_ano,
+                     cmap= 'turbo',
+                     transform=ccrs.PlateCarree(),extend = 'both') 
+    ax.coastlines(zorder =15)
+    ax.coastlines(zorder = 12)
+    land = cf.NaturalEarthFeature(
+        'physical', 'land', '10m',
+        edgecolor='black',
+        facecolor='gray'
+    )
+    ax.add_feature(land, zorder=2)
+
+# subplot individual title
+
+    ax.text(0.75, 0.98, f"Mean ({season[i]})",transform=ax.transAxes,         
+        fontsize=18, zorder= 18,fontweight='bold',
+        va='top', ha='right',)       
+
+#contours  
+ 
+    # contours = ax.contour(lon,lat,co2f_season[i],levels = season_lv,
+    #                           colors='black', linewidths=0.6)
+    # ax.clabel(contours, inline=True, fontsize=12, fmt="%.0f")        
+
+# ticks and gridlines
+
+    ax.set_xticks(xticks, crs=ccrs.PlateCarree()) # for adding ticks 
+    ax.set_yticks(yticks, crs=ccrs.PlateCarree())
+    
+    ax.tick_params(axis='both',
+                   direction='out',   # makes arrow-like ticks
+                   length=5,
+                   width=1.2,
+                   labelsize=20)
+    
+      # Hide labels depending on subplot index
+    if i in [0, 1]:          # top row
+        ax.tick_params(labelbottom=False)
+    
+    if i in [1, 3]:          # right column
+        ax.tick_params(labelleft=False)
+
+#colorbar
+
+cbar_ax = fig.add_axes([0.91, 0.15, 0.02, 0.70]) 
+cbar = fig.colorbar(im, cax=cbar_ax, orientation='vertical',ticks =ano_lv )
+cbar.ax.tick_params(axis='both', which='major',
+               direction='out',   # ticks pointing outward
+               length=6,          # tick length
+               width=1,labelsize=20)
+
+
+#titles
+cbar.set_label('flux (gC m$^{-2}$ yr$^{-1}$)',fontsize = 20,labelpad=12,
+               fontweight = 'bold')
+# fig.suptitle(
+#     'Seasonal Air–Sea CO$_2$ Flux in Indian Ocean (1994–2024)',
+#     fontsize=24,
+#     fontweight='bold',
+#     y=0.88
+# )
+plt.show()
+
 #%% Standard deviation of Seasonal pCO₂ in Indian Ocean (1980 -2019)
 
 mon_mean = co2f_io.groupby('time.month').mean()
@@ -202,7 +370,7 @@ mon_ano = co2f_io.groupby('time.month') - mon_mean
 
 std_mon = mon_ano.groupby('time.month').std('time')
 
-#%%
+#%% monthly fco2
 fig, axs = plt.subplots(3, 4, figsize=(18, 14),
                         subplot_kw={'projection': ccrs.PlateCarree()},
                         gridspec_kw={'wspace': 0.08, 'hspace': -0.55})
@@ -278,7 +446,7 @@ fig.suptitle(
     y=0.87
 )
 plt.show()
-#%%
+#%% std of fco2
 fig, axs = plt.subplots(3, 4, figsize=(18, 14),
                         subplot_kw={'projection': ccrs.PlateCarree()},
                         gridspec_kw={'wspace': 0.08, 'hspace': -0.55})
