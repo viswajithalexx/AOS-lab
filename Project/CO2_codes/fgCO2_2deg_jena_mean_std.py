@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar  5 17:48:28 2026
+Created on Wed Apr  1 12:14:09 2026
 
 @author: bobco-08
 """
@@ -15,21 +15,26 @@ import cartopy.feature as cf
 import cmaps
 
 
-file = "/home/bobco-08/24cl05012/CO2/data/data_1/cmems/bio_var/cmems_obs-mob_glo_bgc-car_my_irr-i_1772520787062.nc"
+file = "/home/bobco-08/24cl05012/CO2/data/data_1/jena/oc_v2025.flux.nc"
 
 data = xr.open_dataset(file)
+
+
+data = data.rename({'mtime': 'time'})
+data = data.rename({'lat': 'latitude'})
+data = data.rename({'lon': 'longitude'})
 
 lat =  data['latitude']
 lon = data['longitude']
 time = data['time']
-# dxyp = data['dxyp']
-co2f = data['fgco2'].sel(latitude = slice(-30,30),longitude = slice(30,120),time = slice('1994-01-01','2024-12-01'))
-# co2f = co2f/dxyp
-# surface douwnward flux of total carbon
-# co2fv = co2f.values*1e15
+dxyp = data['dxyp']
+co2f = data['co2flux_ocean'].sel(latitude = slice(-30,30),longitude = slice(30,120),time = slice('1994-01-01','2024-12-01'))
+co2f = co2f/dxyp
+
+co2fv = co2f.values*1e15
 # for IO
 
-co2f_io = co2f*12
+co2f_io = co2f*1e15
 lon = co2f.longitude
 lat = co2f.latitude
 
@@ -42,12 +47,12 @@ co2f_clim = co2f_io.mean(dim=('time'))
 # plotting 
 flux_levels = np.linspace(-40,40,21)
 ftl = np.arange(-40,44,4)
-fig = plt.figure(figsize=(18,14),dpi = 600)
+fig = plt.figure(figsize=(18,14))
 ax = plt.axes(projection = ccrs.PlateCarree())
-im = plt.contourf(lon,lat,co2f_clim,cmap = cmaps.MPL_RdBu,levels = flux_levels ,
+im = plt.contourf(lon,lat,co2f_clim,cmap = cmaps.cmocean_balance,levels = flux_levels ,
                   transform = ccrs.PlateCarree(),extend = 'both')
 ax.coastlines(zorder = 12)
-ax.set_extent([30, 120, -30, 30], crs=ccrs.PlateCarree())
+ax.set_extent([30, 120, -29, 29], crs=ccrs.PlateCarree())
 land = cf.NaturalEarthFeature(
     'physical', 'land', '10m',
     edgecolor='black',
@@ -64,7 +69,7 @@ ax.add_feature(land, zorder=2)
 
 # ticks and gridlines
 xticks = np.arange(35,125,10)
-yticks = np.arange(-30,40,10)
+yticks = np.arange(-20,40,10)
 ax.set_xticks(xticks, crs=ccrs.PlateCarree()) # for adding ticks 
 ax.set_yticks(yticks, crs=ccrs.PlateCarree())
 ax.tick_params(axis='both',
@@ -123,13 +128,13 @@ on_mean = co2f_on.mean(dim='time')
 
 #%% Seasonal climatology of fCO₂ in Indian Ocean 
 
-fig, axs = plt.subplots(2, 2, figsize=(18,14),dpi = 600,
+fig, axs = plt.subplots(2, 2, figsize=(18,14),dpi =600,
                         subplot_kw={'projection': ccrs.PlateCarree()},
                         gridspec_kw={'wspace':0.06,'hspace': -0.14})
 season = ['DJF','MAM','JJAS',"ON"]
 co2f_season = [djf_mean,mam_mean,jjas_mean,on_mean]
 xticks = np.arange(35,125,10)
-yticks = np.arange(-30,40,10)
+yticks = np.arange(-20,40,10)
 
 from matplotlib import colors
 norm = colors.TwoSlopeNorm(vmin=-60,vcenter=0,vmax=60)
@@ -139,11 +144,11 @@ slv = np.arange(-60,65,10)
 
 for i, ax in enumerate(axs.flat):
     im = ax.contourf(lon,lat,co2f_season[i],levels =season_lv,
-                     cmap= cmaps.cmocean_balance_r,norm=norm,
+                     cmap= cmaps.cmocean_balance,norm=norm,
                      transform=ccrs.PlateCarree(),extend = 'both') 
     ax.coastlines(zorder =15)
     ax.coastlines(zorder = 12)
-    ax.set_extent([30, 120, -30, 30], crs=ccrs.PlateCarree())
+    ax.set_extent([30, 119, -29, 29], crs=ccrs.PlateCarree())
     land = cf.NaturalEarthFeature(
         'physical', 'land', '10m',
         edgecolor='black',
@@ -310,6 +315,7 @@ for i, ax in enumerate(axs.flat):
                      cmap= 'turbo',
                      transform=ccrs.PlateCarree(),extend = 'both') 
     ax.coastlines(zorder =15)
+    ax.coastlines(zorder = 12)
     land = cf.NaturalEarthFeature(
         'physical', 'land', '10m',
         edgecolor='black',
