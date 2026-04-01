@@ -11,7 +11,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 
-file = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems_obs-mob_glo_bgc-car_my_irr-i_multi-vars_35.12E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
+file = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems/bio_var/cmems_obs-mob_glo_bgc-car_my_irr-i_multi-vars_35.12E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
 
 data = xr.open_dataset(file)
 data = data.rename({'latitude':'lat', 'longitude': 'lon'})
@@ -22,12 +22,12 @@ dic = data['tco2'].sel(lat = slice(-6.6,8),lon = slice(92,109))
 alk = data['talk'].sel(lat = slice(-6.6,8),lon = slice(92,109))
 pco2 = data['spco2'].sel(lat = slice(-6.6,8),lon = slice(92,109))
 
-data2 = xr.open_dataset('/home/bobco-08/24cl05012/CO2/data/data_1/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc')
+data2 = xr.open_dataset('/home/bobco-08/24cl05012/CO2/data/data_1/cmems/phy_var/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc')
 data2 = data2.rename({'latitude':'lat', 'longitude': 'lon'})
 sst = data2['thetao_oras'].isel(depth=0)
 sss = data2['so_oras'].isel(depth=0)
-sst = sst.sel(lat = slice(-6.6,8),lon = slice(92,109))
-sss = sss.sel(lat = slice(-6.6,8),lon = slice(92,109))
+sst = sst.sel(lat = slice(-6.6,8),lon = slice(92,109), time = slice('1994-01-01','2024-12-01'))
+sss = sss.sel(lat = slice(-6.6,8),lon = slice(92,109), time = slice('1994-01-01','2024-12-01'))
 #%% pco2-term
 pco2_reg = pco2.mean(dim=('lat', 'lon'))
 pco2_annual = pco2_reg.groupby('time.year').mean(dim = 'time')
@@ -41,7 +41,10 @@ pco2_jja_y = pco2_jja_grouped.mean()
 pco2_djf = pco2_reg.resample(time='QS-DEC').mean(dim='time')  
 pco2_djf = pco2_djf.isel(time=slice(1,-1))                 
 pco2_djf = pco2_djf.sel(time=pco2_djf.time.dt.month == 12)
-pco2_djf_y = pco2_djf.groupby('time.year').mean()
+pco2_djf['year'] = pco2_djf['time.year'] + 1
+
+pco2_djf_y = pco2_djf.groupby('year').mean()
+
 
 
 delta_pco2 = (pco2_jja_y - pco2_djf_y)
@@ -61,7 +64,10 @@ sst_jja_y = sst_jja_grouped.mean()
 sst_djf = sst_reg.resample(time='QS-DEC').mean(dim='time')  
 sst_djf = sst_djf.isel(time=slice(1,-1))                 
 sst_djf = sst_djf.sel(time=sst_djf.time.dt.month == 12)
-sst_djf_y = sst_djf.groupby('time.year').mean()
+sst_djf['year'] = sst_djf['time.year'] + 1
+
+sst_djf_y = sst_djf.groupby('year').mean()
+
 
 
 
@@ -89,9 +95,9 @@ dic_jja_y = dic_jja_grouped.mean()
 dic_djf = dic_reg.resample(time='QS-DEC').mean(dim='time')  
 dic_djf = dic_djf.isel(time=slice(1,-1))                 
 dic_djf = dic_djf.sel(time=dic_djf.time.dt.month == 12)
-dic_djf_y = dic_djf.groupby('time.year').mean()
+dic_djf['year'] = dic_djf['time.year'] + 1
 
-
+dic_djf_y = dic_djf.groupby('year').mean()
 
 
 
@@ -118,8 +124,9 @@ alk_jja_y = alk_jja_grouped.mean()
 alk_djf = alk_reg.resample(time='QS-DEC').mean(dim='time')  
 alk_djf = alk_djf.isel(time=slice(1,-1))                 
 alk_djf = alk_djf.sel(time=alk_djf.time.dt.month == 12)
-alk_djf_y = alk_djf.groupby('time.year').mean()
+alk_djf['year'] = alk_djf['time.year'] + 1
 
+alk_djf_y = alk_djf.groupby('year').mean()
 
 
 
@@ -147,8 +154,10 @@ sal_jja_y = sal_jja_grouped.mean()
 sal_djf = sal_reg.resample(time='QS-DEC').mean(dim='time')  
 sal_djf = sal_djf.isel(time=slice(1,-1))                 
 sal_djf = sal_djf.sel(time=sal_djf.time.dt.month == 12)
-sal_djf_y = sal_djf.groupby('time.year').mean()
+# Shift year so Dec belongs to next year
+sal_djf['year'] = sal_djf['time.year'] + 1
 
+sal_djf_y = sal_djf.groupby('year').mean()
 
 
 # JJAS – DJF difference
@@ -287,12 +296,13 @@ cal_pco2_mean = T_mean+DIC_mean+ALK_mean+SAL_mean
 delta_pco2_mean = np.mean(pco2_jja_y - pco2_djf_y)
 
 
-sigma_SAL = np.std(delta_sal, ddof=1)
-sigma_T = np.std(delta_T, ddof=1)
-sigma_DIC = np.std(delta_dic, ddof=1)
-sigma_ALK = np.std(delta_alk, ddof=1)
+sigma_SAL = np.std(sal_term, ddof=1)
+sigma_T = np.std(T_term, ddof=1)
+sigma_DIC = np.std(dic_term, ddof=1)
+sigma_ALK = np.std(alk_term, ddof=1)
 sigma_cal = np.std(delta_pco2_cal, ddof=1)
 sigma_obs = np.std(delta_pco2, ddof=1)
+
 
 
 
@@ -307,7 +317,7 @@ colors = ['red', 'green', 'pink', 'blue','grey','lightblue']
 
 x = np.arange(len(variables))*0.26
 
-fig, ax = plt.subplots(figsize=(19,12),dpi = 400)
+fig, ax = plt.subplots(figsize=(19,12),dpi=600)
 
 errors = [sigma_T, sigma_DIC, sigma_ALK, sigma_SAL,sigma_cal, sigma_obs]
 
@@ -323,7 +333,7 @@ ax.axhline(0, color='k', linewidth=0.8)
 
 ax.set_ylabel('Mean ΔpCO$_2$ (µatm)',fontsize=18,fontweight = 'bold',labelpad=15)
 ax.set_yticklabels(ax.get_yticks(), fontsize=12)
-ax.set_title('Seasonal contrast between JAS and DJF of ΔpCO$_2$ in ESIO ',fontsize=18,fontweight = 'bold')
+# ax.set_title('Seasonal contrast between JAS and DJF of ΔpCO$_2$ in ESIO ',fontsize=18,fontweight = 'bold')
 
 # Remove x-axis labels
 ax.set_xticks([])
@@ -332,7 +342,7 @@ ax.grid(axis='y', linestyle='--', alpha=0.2)
 
 # ---- Add values above bars ----
 # ---- Add values near the x-axis ----
-y_axis_offset = min((np.array(means))) *1.76  # small vertical offset from x-axis
+y_axis_offset = min((np.array(means))) *2.16  # small vertical offset from x-axis
 
 for i, bar in enumerate(bars):
     val = means[i]
