@@ -28,29 +28,13 @@ sst = data2['thetao_oras'].isel(depth=0)
 sss = data2['so_oras'].isel(depth=0)
 sst = sst.sel(lat = slice(5,22.5),lon = slice(45,65))
 sss = sss.sel(lat = slice(5,22.5),lon = slice(45,65))
+
 #%%
-def remove_outliers_iqr(da):
-    
-    Q1 = da.quantile(0.25, dim='time')
-    Q3 = da.quantile(0.75, dim='time')
-    IQR = Q3 - Q1
-    
-    lower = Q1 - 1.5 * IQR
-    upper = Q3 + 1.5 * IQR
-    
-    # Replace outliers with NaN
-    da_clean = da.where((da >= lower) & (da <= upper))
-    
-    # Interpolate missing values
-    da_clean = da_clean.interpolate_na(dim='time')
-    
-    return da_clean
-#%%
-sst  = remove_outliers_iqr(sst)
-sss  = remove_outliers_iqr(sss)
-pco2 =remove_outliers_iqr(pco2)
-dic = remove_outliers_iqr(dic)
-talk= remove_outliers_iqr(alk)
+sst  = sst
+sss  = sss
+pco2 =pco2
+dic = dic
+talk= alk
 
 
 
