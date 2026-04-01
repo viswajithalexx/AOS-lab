@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import cmaps
 
 
-file1 = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems/bio_var/cmems_obs-mob_glo_bgc-car_my_irr-i_multi-vars_35.12E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
+file1 = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems/bio_var/cmems_obs-mob_glo_bgc-car_my_irr-i_1775027250539_30E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc'
 
 ds1 = xr.open_dataset(file1)
 
@@ -29,7 +29,7 @@ pco2 = ds1['spco2']
 tco2 = ds1['tco2']
 talk = ds1['talk']
 
-file2 = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems/phy_var/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_multi-vars_35.00E-120.00E_30.00S-30.00N_0.51m_1993-01-01-2024-12-01.nc'
+file2 = '/home/bobco-08/24cl05012/CO2/data/data_1/cmems/phy_var/cmems_mod_glo_phy-all_my_0.25deg_P1M-m_1775039295106.nc'
 
 ds2 = xr.open_dataset(file2)
 
@@ -128,22 +128,10 @@ sss_on   = seasons_sss['ON']
 #%% seasonal pco2,sst,sss,dic,alk climatology
 # ---- Seasons ----
 seasons = ['DJF', 'MAM', 'JJAS', 'ON']
-
+xticks = np.arange(35,125,10)
+yticks = np.arange(-30,40,10)
 # ---- Plot configurations ----
-plot_configs = [
-    {
-        'fields': {
-            'DJF': sp_djf,
-            'MAM':  sp_mam,
-            'JJAS':  sp_jjas,
-            'ON':   sp_on
-        },
-        'levels': np.arange(300,460,10),
-        'cmap': cmaps.WhiteBlueGreenYellowRed,
-        'title': 'surface ocean pCO$_2$ (1994 - 2024)',
-        'unit': 'µatm'
-
-    },
+plot_configs_mean = [
     {
         'fields': {
             'DJF': sss_djf,
@@ -151,7 +139,8 @@ plot_configs = [
             'JJAS': sss_jjas,
             'ON':  sss_on
         },
-        'levels': np.arange(30,38,0.5),
+        'levels': np.arange(30,38,0.25),
+        'ticks': np.arange(30,38,0.5),
         'cmap': cmaps.MPL_PuBu,
         'title': 'Sea surface salinity (1994 - 2024)',
         'unit': 'psu'
@@ -163,8 +152,9 @@ plot_configs = [
             'JJAS': sst_jjas,
             'ON':  sst_on
         },
-        'levels': np.arange(18,30,1),
-        'cmap': cmaps.MPL_RdBu_r,
+        'levels': np.arange(18,30,0.5),
+        'ticks': np.arange(18,30,1),
+        'cmap': cmaps.cmp_b2r,
         'title': 'Sea surface temperature (1994 - 2024)',
         'unit': '$^\circ$C'
     },
@@ -175,10 +165,11 @@ plot_configs = [
             'JJAS': tco2_jjas,
             'ON':  tco2_on
         },
-        'levels': np.arange(1800,2101,20),
-        'cmap': cmaps.MPL_PiYG_r,
+        'levels': np.arange(1800,2101,10),
+        'ticks': np.arange(1800,2101,20),
+        'cmap': cmaps.BlGrYeOrReVi200,
         'title': 'Dissolved Inorganic Carbon (1994 - 2024)',
-        'unit': 'micro mol kg-1'
+        'unit': 'DIC (micro mol kg-1)'
     },
     {
         'fields': {
@@ -187,10 +178,11 @@ plot_configs = [
             'JJAS': talk_jjas,
             'ON':  talk_on
         },
-        'levels': np.arange(2100,2401,20),
-        'cmap': cmaps.MPL_PuOr,
+        'levels': np.arange(2100,2401,10),
+        'ticks': np.arange(2100,2401,20),
+        'cmap': cmaps.BlGrYeOrReVi200,
         'title': 'Alkalinity (1994 - 2024)',
-        'unit': 'micro mol kg-1'
+        'unit': 'ALK (micro mol kg-1)'
     }
 ]
 
@@ -216,12 +208,12 @@ regions = {
 
 #------- plotting---------
 
-for cfg in plot_configs:
+for cfg in plot_configs_mean:
 
     fig, axs = plt.subplots(
-        2, 2, figsize=(22,18),
+        2, 2, figsize=(18,14),
         subplot_kw={'projection': ccrs.PlateCarree()},
-        gridspec_kw={'wspace': 0.02, 'hspace': -0.14}
+        gridspec_kw={'wspace':0.06,'hspace': -0.12}
     )
 
     for i, ax in enumerate(axs.flat):
@@ -239,52 +231,63 @@ for cfg in plot_configs:
         
 #-------------contour-------
 
-        cs = ax.contour(
-            data.longitude, data.latitude, data,
-            levels=cfg['levels'],
-            colors='k',
-            linewidths=1
-        )
+        # cs = ax.contour(
+        #     data.longitude, data.latitude, data,
+        #     levels=cfg['levels'],
+        #     colors='k',
+        #     linewidths=1
+        # )
         
-        ax.clabel(cs, inline=True, fontsize= 15, fmt='%d')
+        # ax.clabel(cs, inline=True, fontsize= 15, fmt='%d')
 
-        ax.coastlines(zorder=15)
-        ax.add_feature(cf.LAND, facecolor='lightgrey', zorder=10)
-        
-        gl = ax.gridlines(draw_labels=True, visible=False,
-                             linewidth=0.5, color='grey', alpha=0.2)
-        gl.right_labels = False
-        gl.top_labels = False
-        gl.xlabel_style = {'fontsize': 24}
-        gl.ylabel_style = {'fontsize': 24}
-    
-        if i in [0, 1]:
-               gl.bottom_labels = False
-        if i in [1, 3]:
-               gl.left_labels = False
-        
-#-------------title-----
-        
-        ax.text(
-            0.75, 0.98, f"Mean ({season})",
-            transform=ax.transAxes,
-            fontsize=18, zorder = 15,fontweight='bold',
-            va='top', ha='right'
+        ax.coastlines(zorder =15)
+        ax.set_extent([30, 120, -30, 30], crs=ccrs.PlateCarree())
+        land = cf.NaturalEarthFeature(
+            'physical', 'land', '10m',
+            edgecolor='black',
+            facecolor='gray'
         )
+        ax.add_feature(land, zorder=2)
+#-------------title-----
+                
+        ax.text(0.75, 0.98, f"Mean ({season})",
+        transform=ax.transAxes,
+        fontsize=18, zorder = 15,fontweight='bold',
+        va='top', ha='right')
         # ax.set_title(season, fontsize=18, fontweight='bold')
+        
+# ticks and gridlines
+
+        ax.set_xticks(xticks, crs=ccrs.PlateCarree()) # for adding ticks 
+        ax.set_yticks(yticks, crs=ccrs.PlateCarree())
+        
+        ax.tick_params(axis='both',
+                       direction='out',   # makes arrow-like ticks
+                       length=5,
+                       width=1.2,
+                       labelsize=24)
+        
+          # Hide labels depending on subplot index
+        if i in [0, 1]:          # top row
+            ax.tick_params(labelbottom=False)
+        
+        if i in [1, 3]:          # right column
+            ax.tick_params(labelleft=False)
+
+
 
         
 
 #-------- Colorbar ----
-    cbar_ax = fig.add_axes([0.93, 0.15, 0.02, 0.7])
-    cbar = fig.colorbar(im, cax=cbar_ax, ticks = cfg['levels'])
-    cbar.set_label(cfg['unit'], fontsize= 26,fontweight = 'bold')
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
+    cbar = fig.colorbar(im, cax=cbar_ax, ticks = cfg['ticks'])
+    cbar.set_label(cfg['unit'], fontsize= 24,labelpad=13,fontweight = 'bold')
     cbar.ax.tick_params(labelsize=24)
 
-    plt.suptitle(
-        f'Seasonal climatology of {cfg["title"]}',
-        fontsize=28, y=0.87, fontweight = 'bold',
-    )
+    # plt.suptitle(
+    #     f'Seasonal climatology of {cfg["title"]}',
+    #     fontsize=28, y=0.87, fontweight = 'bold',
+    # )
     
     
     plt.show()
@@ -331,19 +334,7 @@ sss_on_std   = seasons_sss['ON']
 # ---- Plot configurations ----
 seasons = ['DJF', 'MAM', 'JJAS', 'ON']
 
-plot_configs = [
-    {
-        'fields': {
-            'DJF': sp_djf_std,
-            'MAM':  sp_mam_std,
-            'JJAS':  sp_jjas_std,
-            'ON':   sp_on_std
-        },
-        'levels': 20,
-        'cmap': cmaps.WhiteBlueGreenYellowRed,
-        'title': 'surface ocean pCO$_2$ (1994 - 2024)',
-        'unit': 'uatm'
-    },
+plot_configs_std = [
     {
         'fields': {
             'DJF': sss_djf_std,
@@ -351,7 +342,7 @@ plot_configs = [
             'JJAS': sss_jjas_std,
             'ON':  sss_on_std
         },
-        'levels': 20,
+        'levels': 25,
         'cmap': cmaps.MPL_PuBu,
         'title': 'Sea surface salinity (1994 - 2024)',
         'unit': 'PSU'
@@ -363,8 +354,8 @@ plot_configs = [
             'JJAS': sst_jjas_std,
             'ON':  sst_on_std
         },
-        'levels': 20,
-        'cmap': cmaps.MPL_RdBu_r,
+        'levels': 25,
+        'cmap': cmaps.cmp_b2r,
         'title': 'Sea surface temperature (1994 - 2024)',
         'unit': '$^\circ$C'
     },
@@ -375,10 +366,10 @@ plot_configs = [
             'JJAS': tco2_jjas_std,
             'ON':  tco2_on_std
         },
-        'levels': 20,
-        'cmap': cmaps.MPL_PiYG_r,
+        'levels': 25,
+        'cmap': cmaps.BlGrYeOrReVi200,
         'title': 'Dissolved Inorganic Carbon (1994 - 2024)',
-        'unit': 'micro mol kg-1'
+        'unit': 'DIC (micro mol kg-1)'
     },
     {
         'fields': {
@@ -387,20 +378,20 @@ plot_configs = [
             'JJAS': talk_jjas_std,
             'ON':  talk_on_std
         },
-        'levels': 20,
-        'cmap': cmaps.MPL_PuOr,
+        'levels': 25,
+        'cmap': cmaps.BlGrYeOrReVi200,
         'title': 'Alkalinity (1994 - 2024)',
-        'unit': 'micro mol kg-1'
+        'unit': 'ALK (micro mol kg-1)'
     }
 ]
 
 # ---- Main plotting loop ----
-for cfg in plot_configs:
+for cfg in plot_configs_std:
 
     fig, axs = plt.subplots(
-        2, 2, figsize=(18, 12),
+        2, 2, figsize=(18, 14),
         subplot_kw={'projection': ccrs.PlateCarree()},
-        gridspec_kw={'wspace': -0.10, 'hspace': 0.04}
+        gridspec_kw={'wspace':0.06,'hspace': -0.12}
     )
 
     for i, ax in enumerate(axs.flat):
@@ -417,58 +408,180 @@ for cfg in plot_configs:
         )
         
 #-------------contour
-        
-        
+
         cs = ax.contour(
             data.longitude, data.latitude, data,
             levels= 10,
             colors='k',
             linewidths=1
         )
-        
-        gl = ax.gridlines(draw_labels=True, visible=False,
-                          linewidth=0.5, color='grey', alpha=0.2)
-        gl.right_labels = False
-        gl.top_labels = False
-        gl.xlabel_style = {'fontsize': 24}
-        gl.ylabel_style = {'fontsize': 24}
-
-        if i in [0, 1]:
-            gl.bottom_labels = False
-        if i in [1, 3]:
-            gl.left_labels = False
-
-
         ax.clabel(cs, inline=True, fontsize= 10, fmt='%d')
-
-        ax.coastlines(zorder=15)
-        ax.add_feature(cf.LAND, facecolor='lightgrey', zorder=10)
-
-#-----------title
-
-
-        ax.text(
-            0.75, 0.98, f"STD ({season})",
-            transform=ax.transAxes,
-            fontsize=18, zorder = 15,fontweight='bold',
-            va='top', ha='right'
+        
+        
+        ax.coastlines(zorder =15)
+        ax.set_extent([30, 120, -30, 30], crs=ccrs.PlateCarree())
+        land = cf.NaturalEarthFeature(
+            'physical', 'land', '10m',
+            edgecolor='black',
+            facecolor='gray'
         )
-
+        ax.add_feature(land, zorder=2)
+#-------------title-----
+                
+        ax.text(0.75, 0.98, f"Mean ({season})",
+        transform=ax.transAxes,
+        fontsize=18, zorder = 15,fontweight='bold',
+        va='top', ha='right')
         # ax.set_title(season, fontsize=18, fontweight='bold')
+        
+# ticks and gridlines
 
-# ----------Colorbar
-    cbar_ax = fig.add_axes([0.90, 0.15, 0.02, 0.7])
-    cbar = fig.colorbar(im, cax=cbar_ax,)
-    cbar.set_label(cfg['unit'], fontsize= 24, fontweight = 'bold')
-    cbar.ax.tick_params(labelsize= 24)
+        ax.set_xticks(xticks, crs=ccrs.PlateCarree()) # for adding ticks 
+        ax.set_yticks(yticks, crs=ccrs.PlateCarree())
+        
+        ax.tick_params(axis='both',
+                       direction='out',   # makes arrow-like ticks
+                       length=5,
+                       width=1.2,
+                       labelsize=24)
+        
+          # Hide labels depending on subplot index
+        if i in [0, 1]:          # top row
+            ax.tick_params(labelbottom=False)
+        
+        if i in [1, 3]:          # right column
+            ax.tick_params(labelleft=False)
 
-    plt.suptitle(
-        f'Seasonal standard deviation  of {cfg["title"]}',
-        fontsize=28, y=0.94,fontweight = 'bold',
-    )
+
+
+        
+
+#-------- Colorbar ----
+    cbar_ax = fig.add_axes([0.92, 0.15, 0.02, 0.7])
+    cbar = fig.colorbar(im, cax=cbar_ax)
+    cbar.set_label(cfg['unit'], fontsize= 24,labelpad=13,fontweight = 'bold')
+    cbar.ax.tick_params(labelsize=24)
+
+    # plt.suptitle(
+    #     f'Seasonal standard deviation  of {cfg["title"]}',
+    #     fontsize=28, y=0.94,fontweight = 'bold',
+    # )
 
     
-    plt.close()
+    plt.show()
+    
+#%%
+
+for mean_cfg, std_cfg in zip(plot_configs_mean, plot_configs_std):
+
+    fig, axs = plt.subplots(
+        2, 4, figsize=(24, 12),
+        subplot_kw={'projection': ccrs.PlateCarree()},
+        gridspec_kw={'wspace': 0.08, 'hspace': -0.38}
+    )
+
+    # --- reuse land feature (faster & cleaner) ---
+    land = cf.NaturalEarthFeature(
+        'physical', 'land', '10m',
+        edgecolor='black', facecolor='gray'
+    )
+
+    # ===================== MEAN =====================
+    for i, season in enumerate(seasons):
+
+        ax = axs[i//2, i % 2]
+        data = mean_cfg['fields'][season]
+
+        im1 = ax.contourf(
+            data.longitude, data.latitude, data,
+            levels=mean_cfg['levels'],
+            cmap=mean_cfg['cmap'],
+            transform=ccrs.PlateCarree(),
+            extend='both'
+        )
+
+        ax.coastlines(zorder=15)
+        ax.set_extent([30, 120, -30, 30])
+        ax.set_ylim(-30, 30)
+        ax.add_feature(land, zorder=2)
+
+        ax.text(0.75, 0.98, f"Mean ({season})",
+                transform=ax.transAxes,
+                fontsize=16, fontweight='bold',
+                va='top', ha='right')
+
+    # ===================== STD =====================
+    for i, season in enumerate(seasons):
+
+        ax = axs[i//2, i % 2 + 2]
+        data = std_cfg['fields'][season]
+
+        im2 = ax.contourf(
+            data.longitude, data.latitude, data,
+            levels=std_cfg['levels'],
+            cmap=std_cfg['cmap'],
+            transform=ccrs.PlateCarree(),
+            extend='both'
+        )
+
+        ax.coastlines(zorder=15)
+        ax.set_extent([30, 120, -30, 30])
+        ax.set_ylim(-30, 30)
+        ax.add_feature(land, zorder=2)
+
+        ax.text(0.72, 0.98, f"Std ({season})",
+                transform=ax.transAxes,
+                fontsize=16, fontweight='bold',
+                va='top', ha='right')
+
+    # ===================== TICKS =====================
+    for i, ax in enumerate(axs.flat):
+
+        ax.set_xticks(xticks, crs=ccrs.PlateCarree())
+        ax.set_yticks(yticks, crs=ccrs.PlateCarree())
+
+        ax.tick_params(
+            direction='out',
+            length=4,
+            width=1,
+            labelsize=14
+        )
+
+        # hide top row x labels
+        if i < 4:
+            ax.tick_params(labelbottom=False)
+
+        # hide right side y labels
+        if i % 4 != 0:
+            ax.tick_params(labelleft=False)
+
+    # ===================== COLORBARS =====================
+
+       # Mean (left block)
+    cbar1 = fig.colorbar(
+        im1,
+        ax=axs[:, :2],
+        orientation='horizontal',
+        fraction=0.02,   # thinner bar
+        pad=0.06,        # closer to plots
+        aspect=35        # longer bar
+    )
+    cbar1.set_label(mean_cfg['unit'], fontsize=16, fontweight='bold')
+    cbar1.ax.tick_params(labelsize=13)
+    
+    # STD (right block)
+    cbar2 = fig.colorbar(
+        im2,
+        ax=axs[:, 2:],
+        orientation='horizontal',
+        fraction=0.02,
+        pad=0.06,
+        aspect=35
+    )
+    cbar2.set_label(std_cfg['unit'], fontsize=16, fontweight='bold')
+    cbar2.ax.tick_params(labelsize=13)
+
+    plt.show()
 #%% nwio region
 
 nwio_sst = sst.sel(latitude = slice(5,22.5),longitude = slice(45,65)).mean(dim= ('latitude','longitude'))
@@ -515,14 +628,17 @@ ax3.tick_params(axis='y', labelcolor='black')
 # Legend
 lines = ln1 + ln2 + ln3
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=3)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northwestern Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Northwestern Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -545,14 +661,17 @@ ax2.tick_params(axis='y', labelcolor='darkgreen')
 # Legend
 lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.97, 0.99),
+          ncol=2)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northwestern Indian Ocean Monthly Climatology of SST,SSS')
+# ax.set_title('Northwestern Indian Ocean Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -605,14 +724,17 @@ ax3.tick_params(axis='y', labelcolor='black')
 # Legend
 lines = ln1 + ln2 + ln3
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.99),
+          ncol=3)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Eastern Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Eastern Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -635,14 +757,16 @@ ax2.tick_params(axis='y', labelcolor='darkgreen')
 # Legend
 lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
-
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.99),
+          ncol=2)
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Eastern Indian Ocean Monthly Climatology of SST,SSS')
+# ax.set_title('Eastern Indian Ocean Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -696,14 +820,16 @@ ax3.tick_params(axis='y', labelcolor='black')
 # Legend
 lines = ln1 + ln2 + ln3
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
-
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=3)
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Equatorial Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Equatorial Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -726,14 +852,17 @@ ax2.tick_params(axis='y', labelcolor='darkgreen')
 # Legend
 lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=2)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Equatorial Indian Ocean Monthly Climatology of SST,SSS')
+# ax.set_title('Equatorial Indian Ocean Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -787,14 +916,17 @@ ax3.tick_params(axis='y', labelcolor='black')
 # Legend
 lines = ln1 + ln2 + ln3
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=3)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northern Arabian Sea Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Northern Arabian Sea Monthly Climatology of pCO$_2$,DIC,ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -817,14 +949,17 @@ ax2.tick_params(axis='y', labelcolor='darkgreen')
 # Legend
 lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best')
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=2)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northern Arabian Sea Monthly Climatology of SST,SSS')
+# ax.set_title('Northern Arabian Sea Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -833,8 +968,8 @@ plt.show()
 
 
 pco2_clr= '#F40009'
-dic_clr = '#0009F4'
-alk_clr = '#09F400'
+dic_clr = 'darkred'
+alk_clr = 'b'
 sst_clr = '#BE8500'
 sss_clr = '#0039BE'
 
@@ -859,41 +994,29 @@ dic_std   = nwio_tco2.groupby('time.month').std('time')
 alk_mean  = nwio_talk.groupby('time.month').mean('time')
 alk_std   = nwio_talk.groupby('time.month').std('time')
 
-fig, ax = plt.subplots(figsize=(13,5),dpi = 400)
+fig, ax = plt.subplots(figsize=(13,5),dpi = 600)
 
-ln1 = ax.plot(x, pco2_mean, lw=2, color= pco2_clr, label='pCO$_2$')
+# DIC (left axis)
+ln1 = ax.plot(x, dic_mean, lw=2, color=dic_clr, label='DIC')
 
 ax.fill_between(
     x,
-    pco2_mean - pco2_std,
-    pco2_mean + pco2_std,
-    color= pco2_clr,
+    dic_mean - dic_std,
+    dic_mean + dic_std,
+    color=dic_clr,
     alpha=0.25,
     linewidth=3
 )
-ax.set_ylabel('pCO$_2$ (µatm)', color= pco2_clr)
-ax.tick_params(axis='y', labelcolor= pco2_clr)
 
-# DIC (right axis)
+ax.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
+ax.tick_params(axis='y', labelcolor=dic_clr)
+
+# ALK (right axis)
 ax2 = ax.twinx()
-ln2 = ax2.plot(x, dic_mean, lw=2, color= dic_clr, linestyle='--', label='DIC')
+ln2 = ax2.plot(x, alk_mean, lw=2, color=alk_clr,
+               linestyle='--', label='ALK')
 
 ax2.fill_between(
-    x,
-    dic_mean - dic_std,
-    dic_mean + dic_std,
-    color= dic_clr,
-    alpha=0.2,
-    linewidth=3
-)
-ax2.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
-ax2.tick_params(axis='y', labelcolor=dic_clr)
-# ALK (third axis)
-ax3 = ax.twinx()
-ax3.spines['right'].set_position(('outward', 60))
-ln3 = ax3.plot(x, alk_mean, lw=2, color=alk_clr, linestyle='--', label='ALK')
-
-ax3.fill_between(
     x,
     alk_mean - alk_std,
     alk_mean + alk_std,
@@ -901,30 +1024,33 @@ ax3.fill_between(
     alpha=0.2,
     linewidth=3
 )
-ax3.set_ylabel('ALK (µmol kg$^{-1}$)', color=alk_clr)
-ax3.tick_params(axis='y', labelcolor=alk_clr)
+
+ax2.set_ylabel('ALK (µmol kg$^{-1}$)', color=alk_clr)
+ax2.tick_params(axis='y', labelcolor=alk_clr)
+
 # Legend
-lines = ln1 + ln2 + ln3
+lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='upper right',
-    bbox_to_anchor=(0.99,0.10),
-    ncol=3)
+ax.legend(lines, labels,
+          loc='upper right',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=2)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northwestern Indian Ocean  Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Northwestern Indian Ocean Monthly Climatology of DIC & ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
-
+plt.tight_layout()
 plt.show()
 
 
 #%% nwio_phy (edited)
 
-fig, ax = plt.subplots(figsize=(13, 5),dpi = 400)
+fig, ax = plt.subplots(figsize=(13, 5),dpi = 600)
 
 # SST (left axis)
 ln1 = ax.plot(x, t_mean, lw=2, color=sst_clr, label='SST')
@@ -966,7 +1092,7 @@ ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northwestern Indian Ocean Monthly Climatology of SST,SSS')
+# ax.set_title('Northwestern Indian Ocean Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -996,51 +1122,55 @@ month_labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 # ==============================
 # Carbon system plot (with STD)
 # ==============================
-fig, ax = plt.subplots(figsize=(13,5),dpi =400)
+fig, ax = plt.subplots(figsize=(13,5),dpi = 600)
 
-# pCO2
-ln1 = ax.plot(x, pco2_mean, lw=2, color=pco2_clr, label='pCO$_2$')
-ax.fill_between(x, pco2_mean - pco2_std, pco2_mean + pco2_std,
-                color=pco2_clr, alpha=0.2,linewidth=3)
+# DIC (left axis)
+ln1 = ax.plot(x, dic_mean, lw=2, color=dic_clr, label='DIC')
 
-ax.set_ylabel('pCO$_2$ (µatm)', color=pco2_clr)
-ax.tick_params(axis='y', labelcolor=pco2_clr)
+ax.fill_between(
+    x,
+    dic_mean - dic_std,
+    dic_mean + dic_std,
+    color=dic_clr,
+    alpha=0.2,
+    linewidth=3
+)
 
-# DIC
+ax.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
+ax.tick_params(axis='y', labelcolor=dic_clr)
+
+# ALK (right axis)
 ax2 = ax.twinx()
-ln2 = ax2.plot(x, dic_mean, lw=2, color=dic_clr, linestyle='--', label='DIC')
-ax2.fill_between(x, dic_mean - dic_std, dic_mean + dic_std,
-                 color=dic_clr, alpha=0.2,linewidth=3)
+ln2 = ax2.plot(x, alk_mean, lw=2, color=alk_clr,
+               linestyle='--', label='ALK')
 
-ax2.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
-ax2.tick_params(axis='y', labelcolor=dic_clr)
+ax2.fill_between(
+    x,
+    alk_mean - alk_std,
+    alk_mean + alk_std,
+    color=alk_clr,
+    alpha=0.2,
+    linewidth=3
+)
 
-# ALK
-ax3 = ax.twinx()
-ax3.spines['right'].set_position(('outward', 60))
-ln3 = ax3.plot(x, alk_mean, lw=2, color= alk_clr, linestyle='--', label='ALK')
-ax3.fill_between(x, alk_mean - alk_std, alk_mean + alk_std,
-                 color=alk_clr, alpha=0.2,linewidth=3)
-
-ax3.set_ylabel('ALK (µmol kg$^{-1}$)', color=alk_clr)
-ax3.tick_params(axis='y', labelcolor=alk_clr)
+ax2.set_ylabel('ALK (µmol kg$^{-1}$)', color=alk_clr)
+ax2.tick_params(axis='y', labelcolor=alk_clr)
 
 # Legend
-lines = ln1 + ln2 + ln3
+lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='upper right',ncol =3)
+ax.legend(lines, labels, loc='upper right', ncol=2)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Eastern Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Eastern Indian Ocean Monthly Climatology of DIC & ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
 plt.show()
-
 
 
 #%% esio_phy_edited
@@ -1075,7 +1205,7 @@ ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Eastern Indian Ocean Monthly Climatology of SST,SSS')
+# ax.set_title('Eastern Indian Ocean Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -1118,48 +1248,57 @@ month_labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 # ==============================
 fig, ax = plt.subplots(figsize=(13,5), dpi=600)
 
-# pCO2
-ln1 = ax.plot(x, pco2_mean, lw=2, color=pco2_clr, label='pCO$_2$')
-ax.fill_between(x, pco2_mean - pco2_std, pco2_mean + pco2_std,
-                color=pco2_clr, alpha=0.2,linewidth=3)
+# DIC (left axis)
+ln1 = ax.plot(x, dic_mean, lw=2, color=dic_clr, label='DIC')
 
-ax.set_ylabel('pCO$_2$ (µatm)', color=pco2_clr)
-ax.tick_params(axis='y', labelcolor=pco2_clr)
+ax.fill_between(
+    x,
+    dic_mean - dic_std,
+    dic_mean + dic_std,
+    color=dic_clr,
+    alpha=0.2,
+    linewidth=3
+)
 
-# DIC
+ax.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
+ax.tick_params(axis='y', labelcolor=dic_clr)
+
+# ALK (right axis)
 ax2 = ax.twinx()
-ln2 = ax2.plot(x, dic_mean, lw=2, color=dic_clr, linestyle='--', label='DIC')
-ax2.fill_between(x, dic_mean - dic_std, dic_mean + dic_std,
-                 color=dic_clr, alpha=0.2,linewidth=3)
+ln2 = ax2.plot(x, alk_mean, lw=2, color=alk_clr,
+               linestyle='--', label='ALK')
 
-ax2.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
-ax2.tick_params(axis='y', labelcolor=dic_clr)
+ax2.fill_between(
+    x,
+    alk_mean - alk_std,
+    alk_mean + alk_std,
+    color=alk_clr,
+    alpha=0.2,
+    linewidth=3
+)
 
-# ALK
-ax3 = ax.twinx()
-ax3.spines['right'].set_position(('outward', 60))
-ln3 = ax3.plot(x, alk_mean, lw=2, color=alk_clr, linestyle='--', label='ALK')
-ax3.fill_between(x, alk_mean - alk_std, alk_mean + alk_std,
-                 color= alk_clr, alpha=0.2,linewidth=3)
-
-ax3.set_ylabel('ALK (µmol kg$^{-1}$)', color= alk_clr)
-ax3.tick_params(axis='y', labelcolor=alk_clr)
+ax2.set_ylabel('ALK (µmol kg$^{-1}$)', color=alk_clr)
+ax2.tick_params(axis='y', labelcolor=alk_clr)
 
 # Legend
-lines = ln1 + ln2 + ln3
+lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best',ncol= 3)
+ax.legend(lines, labels,
+          loc='best',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=2)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Equatorial Indian Ocean Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Equatorial Indian Ocean Monthly Climatology of DIC & ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
 plt.show()
+
 
 
 # ==============================
@@ -1196,7 +1335,7 @@ ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Equatorial Indian Ocean Monthly Climatology of SST,SSS')
+# ax.set_title('Equatorial Indian Ocean Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
@@ -1238,50 +1377,56 @@ month_labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 # ==============================
 fig, ax = plt.subplots(figsize=(13,5), dpi=600)
 
-# pCO2
-ln1 = ax.plot(x, pco2_mean, lw=2, color=pco2_clr, label='pCO$_2$')
-ax.fill_between(x, pco2_mean - pco2_std, pco2_mean + pco2_std,
-                color=pco2_clr, alpha=0.2,linewidth=3)
+# DIC (left axis)
+ln1 = ax.plot(x, dic_mean, lw=2, color=dic_clr, label='DIC')
 
-ax.set_ylabel('pCO$_2$ (µatm)', color=pco2_clr)
-ax.tick_params(axis='y', labelcolor=pco2_clr)
+ax.fill_between(
+    x,
+    dic_mean - dic_std,
+    dic_mean + dic_std,
+    color=dic_clr,
+    alpha=0.2,
+    linewidth=3
+)
 
-# DIC
+ax.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
+ax.tick_params(axis='y', labelcolor=dic_clr)
+
+# ALK (right axis)
 ax2 = ax.twinx()
-ln2 = ax2.plot(x, dic_mean, lw=2, color=dic_clr, linestyle='--', label='DIC')
-ax2.fill_between(x, dic_mean - dic_std, dic_mean + dic_std,
-                 color=dic_clr, alpha=0.2,linewidth=3)
+ln2 = ax2.plot(x, alk_mean, lw=2, color=alk_clr,
+               linestyle='--', label='ALK')
 
-ax2.set_ylabel('DIC (µmol kg$^{-1}$)', color=dic_clr)
-ax2.tick_params(axis='y', labelcolor=dic_clr)
+ax2.fill_between(
+    x,
+    alk_mean - alk_std,
+    alk_mean + alk_std,
+    color=alk_clr,
+    alpha=0.2,
+    linewidth=3
+)
 
-# ALK
-ax3 = ax.twinx()
-ax3.spines['right'].set_position(('outward', 60))
-ln3 = ax3.plot(x, alk_mean, lw=2, color=alk_clr, linestyle='--', label='ALK')
-ax3.fill_between(x, alk_mean - alk_std, alk_mean + alk_std,
-                 color=alk_clr, alpha=0.2,linewidth=3)
-
-ax3.set_ylabel('ALK (µmol kg$^{-1}$)', color= alk_clr)
-ax3.tick_params(axis='y', labelcolor= alk_clr)
+ax2.set_ylabel('ALK (µmol kg$^{-1}$)', color=alk_clr)
+ax2.tick_params(axis='y', labelcolor=alk_clr)
 
 # Legend
-lines = ln1 + ln2 + ln3
+lines = ln1 + ln2
 labels = [l.get_label() for l in lines]
-ax.legend(lines, labels, loc='best',bbox_to_anchor=(0.99,0.10),ncol =3)
+ax.legend(lines, labels,
+          loc='best',
+          bbox_to_anchor=(0.99, 0.10),
+          ncol=2)
 
 # Formatting
 ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northern Arabian Sea Monthly Climatology of pCO$_2$,DIC,ALK')
+# ax.set_title('Northern Arabian Sea Monthly Climatology of DIC & ALK')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
 plt.show()
-
-
 # ==============================
 # Physical variables plot (SST, SSS)
 # ==============================
@@ -1316,9 +1461,82 @@ ax.set_xticks(x)
 ax.set_xticklabels(month_labels)
 ax.set_xlim(0, 11)
 ax.set_xlabel('Month')
-ax.set_title('Northern Arabian Sea Monthly Climatology of SST,SSS')
+# ax.set_title('Northern Arabian Sea Monthly Climatology of SST,SSS')
 ax.grid(True, linestyle='--', alpha=0.3)
 
 plt.tight_layout()
 plt.show()
 
+#%% pco2 _subplot
+
+# ==============================
+# Monthly climatology (MEAN & STD)
+# ==============================
+
+regions = {
+    'NWIO': nwio_pco2,
+    'NAS' : nas_pco2,
+    'ESIO': esio_pco2,
+    'EIO' : eio_pco2
+}
+
+# Common axis
+x = np.arange(12)
+month_labels = ['Jan','Feb','Mar','Apr','May','Jun',
+                'Jul','Aug','Sep','Oct','Nov','Dec']
+
+# ==============================
+# Plot
+# ==============================
+fig, axs = plt.subplots(2, 2, figsize=(14,10), dpi=600)
+
+for i, (name, data) in enumerate(regions.items()):
+
+    ax = axs.flat[i]
+
+    # Monthly mean & std
+    mean = data.groupby('time.month').mean('time')
+    std  = data.groupby('time.month').std('time')
+
+    # Convert to numpy (safe plotting)
+    mean = mean.values
+    std  = std.values
+
+    # Plot
+    ax.plot(x, mean, lw=2, color=pco2_clr, label='pCO$_2$')
+
+    ax.fill_between(
+        x,
+        mean - std,
+        mean + std,
+        color=pco2_clr,
+        alpha=0.25,
+        linewidth=2
+    )
+
+    # Formatting
+    ax.set_title(name, fontsize=16, fontweight='bold')
+    ax.set_xticks(x)
+    ax.set_xticklabels(month_labels)
+    ax.set_xlim(0, 11)
+    ax.set_ylim(340,460)  # adjust based on your data
+    ax.grid(True, linestyle='--', alpha=0.3)
+
+    # Y label only on left column
+    if i % 2 == 0:
+        ax.set_ylabel('pCO$_2$ (µatm)', fontsize=14)
+
+    # X label only on bottom row
+    if i >= 2:
+        ax.set_xlabel('Month', fontsize=14)
+
+# ==============================
+# Super title
+# ==============================
+# plt.suptitle(
+#     'Monthly Climatology of pCO$_2$',
+#     fontsize=20, fontweight='bold', y=0.95
+# )
+
+plt.tight_layout(rect=[0, 0, 1, 0.94])
+plt.show()
