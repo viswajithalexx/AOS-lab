@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Mar 23 11:53:28 2026
+Created on Wed Apr  1 12:51:02 2026
 
 @author: bobco-08
 """
-
 
 
 # importing libraries
@@ -18,9 +17,15 @@ import cartopy.feature as cf
 import cmaps
 
 
-file = "/home/bobco-08/24cl05012/CO2/data/data_1/cmems/bio_var/cmems_obs-mob_glo_bgc-car_my_irr-i_1775027250539_30E-119.88E_29.88S-29.88N_1994-01-01-2024-12-01.nc"
+file = "/home/bobco-08/24cl05012/CO2/data/data_1/jena/oc_v2025.pCO2.nc"
 
 data = xr.open_dataset(file)
+data = data.rename({'mtime': 'time'})
+data = data.rename({'lat': 'latitude'})
+data = data.rename({'lon': 'longitude'})
+data = data.rename({'pCO2': 'spco2'})
+
+
 
 lat =  data['latitude']
 lon = data['longitude']
@@ -55,9 +60,9 @@ ax.add_feature(land, zorder=2)
 
 
 # contour
-cs = plt.contour(lon, lat, co2f_clim,levels=flux_levels,colors='k',
-                 lineslinewidths=0.5,transform=ccrs.PlateCarree())
-plt.clabel(cs, fmt='%d', fontsize=17)
+# cs = plt.contour(lon, lat, co2f_clim,levels=flux_levels,colors='k',
+#                  lineslinewidths=0.5,transform=ccrs.PlateCarree())
+# plt.clabel(cs, fmt='%d', fontsize=17)
 
 
 # ticks and gridlines
@@ -120,16 +125,16 @@ on_mean = pco2_on.mean(dim='time')
 
 #%% Seasonal climatology of pCO₂ in Indian Ocean (1980–2019)
 
-fig, axs = plt.subplots(2, 2, figsize=(18,14),dpi = 600,
+fig, axs = plt.subplots(2, 2, figsize=(18,14),
                         subplot_kw={'projection': ccrs.PlateCarree()},
-                        gridspec_kw={'wspace':0.06,'hspace': -0.09})
+                        gridspec_kw={'wspace':0.06,'hspace': -0.12})
 season = ['DJF','MAM','JJAS',"ON"]
 co2f_season = [djf_mean,mam_mean,jjas_mean,on_mean]
 
 
 
 
-season_lv = np.arange(300,460,5)
+season_lv = np.arange(300,460,10)
 slv = np.arange(300,460,10)
 #plotting
 
@@ -204,7 +209,7 @@ jjas_std = pco2_jjas.std(dim =('time'))
 mam_std = pco2_mam.std(dim =('time'))
 on_std = pco2_on.std(dim =('time'))
 
-fig, axs = plt.subplots(2, 2, figsize=(18,14),dpi =600,
+fig, axs = plt.subplots(2, 2, figsize=(18,14),dpi=600,
                         subplot_kw={'projection': ccrs.PlateCarree()},
                         gridspec_kw={'wspace':0.06,'hspace': -0.12})
 season = ['DJF','MAM','JJAS',"ON"]
@@ -230,7 +235,7 @@ for i, ax in enumerate(axs.flat):
 
 # subplot individual title
 
-    ax.text(0.75, 0.98, f"Std ({season[i]})",transform=ax.transAxes,         
+    ax.text(0.75, 0.98, f"std ({season[i]})",transform=ax.transAxes,         
         fontsize=18, zorder= 18,fontweight='bold',
         va='top', ha='right',)       
 
